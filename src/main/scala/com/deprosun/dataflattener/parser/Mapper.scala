@@ -3,7 +3,7 @@ package com.deprosun.dataflattener.parser
 import java.io.{File, PrintWriter}
 import java.io.{InputStream, StringReader}
 
-import com.deprosun.dataflattener.parser.RepresentationMapperParser.FromFieldContext
+import com.deprosun.dataflattener.parser.FlattenerParser.FromFieldContext
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 
 import scala.collection.JavaConversions._
@@ -11,18 +11,18 @@ import scala.language.postfixOps
 
 object Mapper {
 
-  private def getParser(inputStream: InputStream): RepresentationMapperParser = {
+  private def getParser(inputStream: InputStream): FlattenerParser = {
     val inputCharStream = CharStreams.fromStream(inputStream)
-    val tokenSource = new RepresentationMapperLexer(inputCharStream)
+    val tokenSource = new FlattenerLexer(inputCharStream)
     val inputTokenStream = new CommonTokenStream(tokenSource)
-    new RepresentationMapperParser(inputTokenStream)
+    new FlattenerParser(inputTokenStream)
   }
 
-  private def getParser(input: String): RepresentationMapperParser = {
+  private def getParser(input: String): FlattenerParser = {
     val inputCharStream = CharStreams.fromReader(new StringReader(input))
-    val tokenSource = new RepresentationMapperLexer(inputCharStream)
+    val tokenSource = new FlattenerLexer(inputCharStream)
     val inputTokenStream = new CommonTokenStream(tokenSource)
-    val p = new RepresentationMapperParser(inputTokenStream)
+    val p = new FlattenerParser(inputTokenStream)
     p.removeErrorListeners()
     p.addErrorListener(new WrongSyntaxErrorListener())
     p
@@ -31,7 +31,7 @@ object Mapper {
   /**
     * Creates a PathName object
     */
-  private def getPathName(mfc: RepresentationMapperParser.Middle_field_nameContext): PathName = {
+  private def getPathName(mfc: FlattenerParser.Middle_field_nameContext): PathName = {
     val value = {
       Option(mfc.list_index()).map(x => x.ID().getText).getOrElse(mfc.getText)
     }
@@ -42,12 +42,12 @@ object Mapper {
     * Creates a PathName object
     *
     */
-  private def getPathName(ffc: RepresentationMapperParser.First_field_nameContext): PathName = PathName(ffc.getText)
+  private def getPathName(ffc: FlattenerParser.First_field_nameContext): PathName = PathName(ffc.getText)
 
   /**
     * Given the MappingContext, returns a list of PathName's
     */
-  private def getPathNameList(mc: RepresentationMapperParser.MappingContext): Seq[PathName] = {
+  private def getPathNameList(mc: FlattenerParser.MappingContext): Seq[PathName] = {
 
     //get the first field name
     val firstField = getPathName(mc.first_field_name())
@@ -69,9 +69,9 @@ object Mapper {
   /**
     * Depending on the attribute context, form the right Attribute object
     */
-  private def getAttribute(ac: RepresentationMapperParser.AttributesContext): Seq[MappingAttribute] = {
+  private def getAttribute(ac: FlattenerParser.AttributesContext): Seq[MappingAttribute] = {
 
-    ac.attr() map { attr =>
+    ac.attribute map { attr =>
       val concatBy = Option(attr.concatBy())
       val pk_fk = Option(attr.pk_fk())
       val reference = Option(attr.reference())
@@ -89,7 +89,7 @@ object Mapper {
   /**
     * Creates a Mapping object
     */
-  private def getMapping(mc: RepresentationMapperParser.MappingContext): Mapping = {
+  private def getMapping(mc: FlattenerParser.MappingContext): Mapping = {
 
     //get path list
     val pathNameList = getPathNameList(mc)
@@ -114,7 +114,7 @@ object Mapper {
   /**
     * Get a MapperSource object contained with a list of Mappings
     */
-  private def getMappings(msc: RepresentationMapperParser.MappingsContext): Seq[Mapping] = {
+  private def getMappings(msc: FlattenerParser.MappingsContext): Seq[Mapping] = {
     Option(msc.mapping()) map { mappings =>
       mappings map getMapping
     } getOrElse Seq()
@@ -123,7 +123,7 @@ object Mapper {
   /**
     * This is the representation plan of the given table.
     */
-  private def getMapper(mc: RepresentationMapperParser.MapperContext): Mapper = {
+  private def getMapper(mc: FlattenerParser.MapperContext): Mapper = {
 
     //get the table name
     val tableName = mc.table_name().getText

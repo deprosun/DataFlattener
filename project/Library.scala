@@ -1,6 +1,10 @@
 import sbt._
 
 object Library {
+
+  val sparkVersion = "2.3.0"
+
+
   val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
   val scalaTestDep: Seq[ModuleID] = Seq(scalaTest % Test)
 
@@ -16,4 +20,8 @@ object Library {
     "spray repo" at "http://repo.spray.io",
   )
 
+  val spark: Seq[ModuleID] = Seq(
+    "org.apache.spark" %% "spark-core" % sparkVersion,
+    "org.apache.spark" %% "spark-sql" % sparkVersion
+  )
 }

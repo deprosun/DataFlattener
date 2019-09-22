@@ -1,4 +1,4 @@
-// Generated from /Users/kgupta/DataFlattener/target/RepresentationMapper.g4 by ANTLR 4.7.2
+// Generated from /Users/kgupta/projects/DataFlattener/Flattener.g4 by ANTLR 4.7.2
 package com.deprosun.dataflattener.parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
-public class RepresentationMapperLexer extends Lexer {
+public class FlattenerLexer extends Lexer {
 	static { RuntimeMetaData.checkVersion("4.7.2", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -86,13 +86,13 @@ public class RepresentationMapperLexer extends Lexer {
 	}
 
 
-	public RepresentationMapperLexer(CharStream input) {
+	public FlattenerLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@Override
-	public String getGrammarFileName() { return "RepresentationMapper.g4"; }
+	public String getGrammarFileName() { return "Flattener.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }

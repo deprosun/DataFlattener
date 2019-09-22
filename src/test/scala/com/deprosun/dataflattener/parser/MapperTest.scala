@@ -1,12 +1,13 @@
 package com.deprosun.dataflattener.parser
 
 import com.deprosun.dataflattener.TestStyle
+import org.apache.spark.sql.DataFrame
 
 class MapperTest extends TestStyle {
 
   describe("A mapper") {
 
-    describe("when valid configuration file is valid") {
+    describe("when the configuration is valid") {
 
       val config =
 
@@ -64,7 +65,7 @@ class MapperTest extends TestStyle {
       }
     }
 
-    describe("when valid configuration file is invalid") {
+    describe("when configuration has syntax issues") {
 
       val config =
         """ ,cmx c,v
@@ -82,7 +83,7 @@ class MapperTest extends TestStyle {
         """.stripMargin
 
       it("should throw an error") {
-        Mapper.getMapper(config)
+        intercept[Exception](Mapper.getMapper(config))
       }
     }
 
