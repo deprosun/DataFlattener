@@ -1,5 +1,5 @@
 // Generated from /Users/kgupta/projects/DataFlattener/Flattener.g4 by ANTLR 4.7.2
-package com.deprosun.dataflattener.parser;
+package com.github.deprosun.dataflattener.parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

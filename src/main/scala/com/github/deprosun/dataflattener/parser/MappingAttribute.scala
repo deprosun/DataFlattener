@@ -1,4 +1,4 @@
-package com.deprosun.dataflattener.parser
+package com.github.deprosun.dataflattener.parser
 
 trait MappingAttribute {
   val value: String

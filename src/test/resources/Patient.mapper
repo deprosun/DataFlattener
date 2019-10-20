@@ -1,0 +1,296 @@
+SOURCE Patient (
+
+    MAPPING (
+        groupResourceId                             =   id                                     UNIQUEIDENTIFIER                                            NOT NULL    PK,
+        gender.value                                =   genderCode                             VARCHAR                               (1024)                NULL,
+        gender.sourceText                           =   genderSourceText                       VARCHAR                               (1024)                NULL,
+        birthDate                                   =   birthDate                              DATETIMEOFFSET                        (3)                   NULL,
+        deceased.deceasedBoolean.value              =   deceasedBoolean                        BIT                                                         NULL,
+        deceased.deceasedDateTime                   =   deceasedDate                           DATETIMEOFFSET                        (3)                   NULL,
+        maritalStatus.coding.[0].system             =   maritalStatusSystem                    VARCHAR                               (1024)                NULL,
+        maritalStatus.coding.[0].version            =   maritalStatusVersion                   VARCHAR                               (255)                 NULL,
+        maritalStatus.coding.[0].code               =   maritalStatusCode                      VARCHAR                               (1024)                NULL,
+        maritalStatus.text                          =   maritalStatusText                      VARCHAR                               (1024)                NULL,
+        multipleBirth.multipleBirthBoolean.value    =   multipleBirthBoolean                   BIT                                                         NULL,
+        multipleBirth.multipleBirthInteger.value    =   multipleBirthInteger                   INT                                                         NULL,
+        managingOrganization.reference              =   managingOrganizationReference          UNIQUEIDENTIFIER                                            NULL             Reference[Organization],
+        active.value                                =   active                                 BIT                                                         NULL,
+        race.coding.[0].system                      =   raceSystem                             VARCHAR                               (1024)                NULL,
+        race.coding.[0].version                     =   raceVersion                            VARCHAR                               (255)                 NULL,
+        race.coding.[0].code                        =   raceCode                               VARCHAR                               (1024)                NULL,
+        race.text                                   =   raceText                               VARCHAR                               (1024)                NULL,
+        religion.coding.[0].system                  =   religionSystem                         VARCHAR                               (1024)                NULL,
+        religion.coding.[0].version                 =   religionVersion                        VARCHAR                               (255)                 NULL,
+        religion.coding.[0].code                    =   religionCode                           VARCHAR                               (1024)                NULL,
+        religion.text                               =   religionText                           VARCHAR                               (1024)                NULL,
+        ethnicity.coding.[0].system                 =   ethnicitySystem                        VARCHAR                               (1024)                NULL,
+        ethnicity.coding.[0].version                =   ethnicityVersion                       VARCHAR                               (255)                 NULL,
+        ethnicity.coding.[0].code                   =   ethnicityCode                          VARCHAR                               (1024)                NULL,
+        ethnicity.text                              =   ethnicityText                          VARCHAR                               (1024)                NULL,
+        mothersMaidenName                           =   mothersMaidenName                      VARCHAR                               (255)                 NULL,
+        birthPlace.use.value                        =   birthPlaceUseCode                      VARCHAR                               (1024)                NULL,
+        birthPlace.use.sourceText                   =   birthPlaceUseSourceText                VARCHAR                               (1024)                NULL,
+        birthPlace.type.value                       =   birthPlaceTypeCode                     VARCHAR                               (1024)                NULL,
+        birthPlace.type.sourceText                  =   birthPlaceTypeSourceText               VARCHAR                               (1024)                NULL,
+        birthPlace.text                             =   birthPlaceText                         VARCHAR                               (1024)                NULL,
+        birthPlace.line.[0]                         =   birthPlaceLine1                        VARCHAR                               (255)                 NULL,
+        birthPlace.line.[1]                         =   birthPlaceLine2                        VARCHAR                               (255)                 NULL,
+        birthPlace.line.[2]                         =   birthPlaceLine3                        VARCHAR                               (255)                 NULL,
+        birthPlace.city                             =   birthPlaceCity                         VARCHAR                               (50)                  NULL,
+        birthPlace.state                            =   birthPlaceState                        VARCHAR                               (50)                  NULL,
+        birthPlace.postalCode                       =   birthPlacePostalCode                   VARCHAR                               (50)                  NULL,
+        birthPlace.district                         =   birthPlaceDistrict                     VARCHAR                               (50)                  NULL,
+        birthPlace.country                          =   birthPlaceCountry                      VARCHAR                               (50)                  NULL,
+        birthPlace.period.startTime                 =   birthPlacePeriodStart                  DATETIMEOFFSET                        (3)                   NULL,
+        birthPlace.period.endTime                   =   birthPlacePeriodEnd                    DATETIMEOFFSET                        (3)                   NULL,
+        meta.sourceMessageType                      =   metaSourceMessageType                  VARCHAR                               (255)                 NULL,
+        meta.sourceMessageDate                      =   metaSourceMessageDate                  DATETIMEOFFSET                        (3)                   NULL,
+        meta.acquiredDate                           =   metaAcquiredDate                       DATETIMEOFFSET                        (3)                   NULL,
+        meta.sourceDocumentId                       =   metaSourceDocumentId                   VARCHAR                               (255)                 NULL,
+        meta.senderId                               =   metaSenderId                           VARCHAR                               (255)                 NULL,
+        meta.repositoryId                           =   metaRepositoryId                       UNIQUEIDENTIFIER                                            NULL,
+        meta.ontologyName                           =   metaOntologyName                       VARCHAR                               (255)                 NULL,
+        meta.ontologyVersion                        =   metaOntologyVersion                    VARCHAR                               (50)                  NULL,
+        meta.fileId                                 =   metaFileId                             VARCHAR                               (255)                 NULL
+    )
+
+    SOURCE PatientName FROM name (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER                                            NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER                                            NOT NULL    FK,
+            use.value                               =   useCode                                VARCHAR                               (1024)                NULL,
+            use.sourceText                          =   useSourceText                          VARCHAR                               (1024)                NULL,
+            text                                    =   text                                   VARCHAR                               (1024)                NULL,
+            family                                  =   family                                 VARCHAR                               (255)                 NULL       ConcatBy[,],
+            given                                   =   given                                  VARCHAR                               (255)                 NULL       ConcatBy[,],
+            prefix                                  =   prefix                                 VARCHAR                               (255)                 NULL       ConcatBy[,],
+            suffix                                  =   suffix                                 VARCHAR                               (255)                 NULL       ConcatBy[,],
+            period.startTime                        =   periodStart                            DATETIMEOFFSET                        (3)                   NULL,
+            period.endTime                          =   periodEnd                              DATETIMEOFFSET                        (3)                   NULL
+        )
+    )
+
+    SOURCE PatientIdentifier FROM identifier (
+        MAPPING (
+            GENERATED                               = id                                       UNIQUEIDENTIFIER                 NOT NULL        PK,
+            foreignId                               = patientId                                UNIQUEIDENTIFIER                 NOT NULL        FK,
+            use.value                               = useCode                                  VARCHAR              (1024)      NULL,
+            use.sourceText                          = useSourceText                            VARCHAR              (1024)      NULL,
+            type.coding.[0].system                  = typeSystem                               VARCHAR              (1024)      NULL,
+            type.coding.[0].version                 = typeVersion                              VARCHAR              (255)       NULL,
+            type.coding.[0].code                    = typeCode                                 VARCHAR              (1024)      NULL,
+            type.text                               = typeText                                 VARCHAR              (1024)      NULL,
+            system                                  = systemUri                                VARCHAR              (1024)      NULL,
+            value                                   = valueString                              VARCHAR              (1024)      NULL,
+            period.startTime                        = periodStart                              DATETIMEOFFSET       (3)         NULL,
+            period.endTime                          = periodEnd                                DATETIMEOFFSET       (3)         NULL,
+            assigner.reference                      = assignerOrganizationReference            UNIQUEIDENTIFIER                 NULL            Reference[Organization]
+        )
+    )
+
+    SOURCE PatientTelecom FROM telecom (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER                 NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER                 NOT NULL    FK,
+            system.value                            =   systemCode                             VARCHAR              (1024)      NULL,
+            system.sourceText                       =   systemSourceText                       VARCHAR              (1024)      NULL,
+            value                                   =   valueString                            VARCHAR              (1024)      NULL,
+            use.value                               =   useCode                                VARCHAR              (1024)      NULL,
+            use.sourceText                          =   useSourceText                          VARCHAR              (1024)      NULL,
+            rank                                    =   rank                                   INT                              NULL,
+            period.startTime                        =   periodStart                            DATETIMEOFFSET       (3)         NULL,
+            period.endTime                          =   periodEnd                              DATETIMEOFFSET       (3)         NULL
+        )
+    )
+
+    SOURCE PatientAddress FROM address (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER                 NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER                 NOT NULL    FK,
+            use.value                               =   useCode                                VARCHAR              (1024)      NULL,
+            use.sourceText                          =   useSourceText                          VARCHAR              (1024)      NULL,
+            type.value                              =   typeCode                               VARCHAR              (1024)      NULL,
+            type.sourceText                         =   typeSourceText                         VARCHAR              (1024)      NULL,
+            text                                    =   text                                   VARCHAR              (1024)      NULL,
+            line.[0]                                =   line1                                  VARCHAR              (255)       NULL,
+            line.[1]                                =   line2                                  VARCHAR              (255)       NULL,
+            line.[2]                                =   line3                                  VARCHAR              (255)       NULL,
+            city                                    =   city                                   VARCHAR              (50)        NULL,
+            state                                   =   state                                  VARCHAR              (50)        NULL,
+            postalCode                              =   postalCode                             VARCHAR              (50)        NULL,
+            district                                =   district                               VARCHAR              (50)        NULL,
+            country                                 =   country                                VARCHAR              (50)        NULL,
+            period.startTime                        =   periodStart                            DATETIMEOFFSET       (3)         NULL,
+            period.endTime                          =   periodEnd                              DATETIMEOFFSET       (3)         NULL
+        )
+    )
+
+
+    SOURCE PatientContact FROM contact (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER             NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER             NOT NULL    FK,
+            name.use.value                          =   nameUseCode                            VARCHAR          (1024)      NULL,
+            name.use.sourceText                     =   nameUseSourceText                      VARCHAR          (1024)      NULL,
+            name.text                               =   nameText                               VARCHAR          (1024)      NULL,
+            name.family                             =   nameFamily                             VARCHAR          (255)       NULL        ConcatBy[,],
+            name.given                              =   nameGiven                              VARCHAR          (255)       NULL        ConcatBy[,],
+            name.prefix                             =   namePrefix                             VARCHAR          (255)       NULL        ConcatBy[,],
+            name.suffix                             =   nameSuffix                             VARCHAR          (255)       NULL        ConcatBy[,],
+            name.period.startTime                   =   namePeriodStart                        DATETIMEOFFSET   (3)         NULL,
+            name.period.endTime                     =   namePeriodEnd                          DATETIMEOFFSET   (3)         NULL,
+            address.use.value                       =   addressUseCode                         VARCHAR          (1024)      NULL,
+            address.use.sourceText                  =   addressUseSourceText                   VARCHAR          (1024)      NULL,
+            address.type.value                      =   addressTypeCode                        VARCHAR          (1024)      NULL,
+            address.type.sourceText                 =   addressTypeSourceText                  VARCHAR          (1024)      NULL,
+            address.text                            =   addressText                            VARCHAR          (1024)      NULL,
+            address.line.[0]                        =   addressLine1                           VARCHAR          (255)       NULL,
+            address.line.[1]                        =   addressLine2                           VARCHAR          (255)       NULL,
+            address.line.[2]                        =   addressLine3                           VARCHAR          (255)       NULL,
+            address.city                            =   addressCity                            VARCHAR          (50)        NULL,
+            address.state                           =   addressState                           VARCHAR          (50)        NULL,
+            address.postalCode                      =   addressPostalCode                      VARCHAR          (50)        NULL,
+            address.district                        =   addressDistrict                        VARCHAR          (50)        NULL,
+            address.country                         =   addressCountry                         VARCHAR          (50)        NULL,
+            address.period.startTime                =   addressPeriodStart                     DATETIMEOFFSET   (3)         NULL,
+            address.period.endTime                  =   addressPeriodEnd                       DATETIMEOFFSET   (3)         NULL,
+            gender.value                            =   genderCode                             VARCHAR          (1024)      NULL,
+            gender.sourceText                       =   genderSourceText                       VARCHAR          (1024)      NULL,
+            organization.reference                  =   organizationReference                  UNIQUEIDENTIFIER             NULL       Reference[Organization],
+            period.startTime                        =   periodStart                            DATETIMEOFFSET   (3)         NULL,
+            period.endTime                          =   periodEnd                              DATETIMEOFFSET   (3)         NULL
+        )
+
+        SOURCE PatientContactRelationship FROM relationship (
+            MAPPING (
+                GENERATED                           =   id                                     UNIQUEIDENTIFIER                 NOT NULL    PK,
+                foreignId                           =   patientContactId                       UNIQUEIDENTIFIER                 NOT NULL    FK,
+                coding.[0].system                   =   relationshipSystem                     VARCHAR              (1024)      NULL,
+                coding.[0].version                  =   relationshipVersion                    VARCHAR              (255)       NULL,
+                coding.[0].code                     =   relationshipCode                       VARCHAR              (1024)      NULL,
+                text                                =   relationshipText                       VARCHAR              (1024)      NULL
+            )
+        )
+
+        SOURCE PatientContactTelecom FROM telecom (
+            MAPPING (
+               GENERATED                            =   id                                     UNIQUEIDENTIFIER                     NOT NULL    PK,
+               foreignId                            =   patientContactId                       UNIQUEIDENTIFIER                     NOT NULL    FK,
+               system.value                         =   systemCode                             VARCHAR              (1024)          NULL,
+               system.sourceText                    =   systemSourceText                       VARCHAR              (1024)          NULL,
+               value                                =   valueString                            VARCHAR              (1024)          NULL,
+               use.value                            =   useCode                                VARCHAR              (1024)          NULL,
+               use.sourceText                       =   useSourceText                          VARCHAR              (1024)          NULL,
+               rank                                 =   rank                                   INT                                  NULL,
+               period.startTime                     =   periodStart                            DATETIMEOFFSET       (3)             NULL,
+               period.endTime                       =   periodEnd                              DATETIMEOFFSET       (3)             NULL
+            )
+        )
+    )
+
+    SOURCE PatientCommunication FROM communication (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER               NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER               NOT NULL    FK,
+            language.coding.[0].system              =   languageSystem                         VARCHAR              (1024)    NULL,
+            language.coding.[0].version             =   languageVersion                        VARCHAR              (255)     NULL,
+            language.coding.[0].code                =   languageCode                           VARCHAR              (1024)    NULL,
+            language.text                           =   languageText                           VARCHAR              (1024)    NULL,
+            preferred.value                         =   preferred                              BIT                            NULL
+        )
+    )
+
+    SOURCE PatientCareProvider FROM careProvider (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER             NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER             NOT NULL    FK,
+            reference                               =   careProviderPractitionerReference      UNIQUEIDENTIFIER             NULL        Reference[Practitioner],
+            reference                               =   careProviderOrganizationReference      UNIQUEIDENTIFIER             NULL        Reference[Organization]
+        )
+    )
+
+    SOURCE PatientLink FROM link (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER             NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER             NOT NULL    FK,
+            other.reference                         =   otherPatientReference                  UNIQUEIDENTIFIER             NULL        Reference[Patient],
+            other.reference                         =   otherRelatedPersonReference            UNIQUEIDENTIFIER             NULL        Reference[RelatedPerson],
+            linkType.value                          =   typeCode                               VARCHAR              (1024)  NULL,
+            linkType.sourceText                     =   typeSourceText                         VARCHAR              (1024)  NULL
+        )
+    )
+
+    SOURCE PatientPhoto FROM photo (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER              NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER              NOT NULL    FK,
+            contentType.value                       =   contentType                            VARCHAR              (50)     NULL,
+            language.value                          =   language                               VARCHAR              (50)     NULL,
+            data                                    =   data                                   VARCHAR              (MAX)    NULL,
+            url                                     =   url                                    VARCHAR              (255)    NULL,
+            size                                    =   size                                   INT                           NULL,
+            hash                                    =   hash                                   VARCHAR              (MAX)    NULL,
+            title                                   =   title                                  VARCHAR              (50)     NULL,
+            creation                                =   creation                               DATETIMEOFFSET       (3)      NULL
+        )
+    )
+
+    SOURCE PatientCitizenship FROM citizenship (
+        MAPPING (
+           GENERATED                                =   id                                     UNIQUEIDENTIFIER                 NOT NULL    PK,
+           foreignId                                =   patientId                              UNIQUEIDENTIFIER                 NOT NULL    FK,
+           code.coding.[0].system                   =   codeSystem                             VARCHAR              (1024)      NULL,
+           code.coding.[0].version                  =   codeVersion                            VARCHAR              (255)       NULL,
+           code.coding.[0].code                     =   code                                   VARCHAR              (1024)      NULL,
+           code.text                                =   codeText                               VARCHAR              (1024)      NULL,
+           period.startTime                         =   periodStart                            DATETIMEOFFSET       (3)         NULL,
+           period.endTime                           =   periodEnd                              DATETIMEOFFSET       (3)         NULL
+        )
+    )
+
+    SOURCE PatientNationality FROM nationality (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER                 NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER                 NOT NULL    FK,
+            code.coding.[0].system                  =   codeSystem                             VARCHAR              (1024)      NULL,
+            code.coding.[0].version                 =   codeVersion                            VARCHAR              (255)       NULL,
+            code.coding.[0].code                    =   code                                   VARCHAR              (1024)      NULL,
+            code.text                               =   codeText                               VARCHAR              (1024)      NULL,
+            period.startTime                        =   periodStart                            DATETIMEOFFSET       (3)         NULL,
+            period.endTime                          =   periodEnd                              DATETIMEOFFSET       (3)         NULL
+        )
+    )
+
+    SOURCE PatientClinicalTrial FROM clinicalTrial (
+        MAPPING (
+            GENERATED                               =   id                                     UNIQUEIDENTIFIER                 NOT NULL    PK,
+            foreignId                               =   patientId                              UNIQUEIDENTIFIER                 NOT NULL    FK,
+            nct                                     =   nct                                    VARCHAR              (50)        NULL,
+            period.startTime                        =   periodStart                            DATETIMEOFFSET       (3)         NULL,
+            period.endTime                          =   periodEnd                              DATETIMEOFFSET       (3)         NULL,
+            reason.coding.[0].system                =   reasonSystem                           VARCHAR              (1024)      NULL,
+            reason.coding.[0].version               =   reasonVersion                          VARCHAR              (255)       NULL,
+            reason.coding.[0].code                  =   reasonCode                             VARCHAR              (1024)      NULL,
+            reason.text                             =   reasonText                             VARCHAR              (1024)      NULL,
+            status.coding.[0].system                =   statusSystem                           VARCHAR              (1024)      NULL,
+            status.coding.[0].version               =   statusVersion                          VARCHAR              (255)       NULL,
+            status.coding.[0].code                  =   statusCode                             VARCHAR              (1024)      NULL,
+            status.text                             =   statusText                             VARCHAR              (1024)      NULL,
+            eligible.value                          =   eligible                               BIT                              NULL
+        )
+    )
+    SOURCE PatientCareProviderRole FROM careProviderRole (
+        MAPPING (
+            GENERATED                               = id                                       UNIQUEIDENTIFIER                 NOT NULL    PK,
+            foreignId                               = patientId                                UNIQUEIDENTIFIER                 NOT NULL    FK,
+            role.coding.[0].system                  = roleSystem                               VARCHAR              (1024)      NULL,
+            role.coding.[0].version                 = roleVersion                              VARCHAR              (255)       NULL,
+            role.coding.[0].code                    = roleCode                                 VARCHAR              (1024)      NULL,
+            role.text                               = roleText                                 VARCHAR              (1024)      NULL,
+            period.startTime                        = periodStart                              DATETIMEOFFSET       (3)         NULL,
+            period.endTime                          = periodEnd                                DATETIMEOFFSET       (3)         NULL
+
+        )
+    )
+
+)

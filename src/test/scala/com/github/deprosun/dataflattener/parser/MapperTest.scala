@@ -1,4 +1,4 @@
-package com.deprosun.dataflattener.parser
+package com.github.deprosun.dataflattener.parser
 
 import com.deprosun.dataflattener.TestStyle
 import org.apache.spark.sql.DataFrame

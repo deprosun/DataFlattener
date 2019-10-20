@@ -1,9 +1,8 @@
-package com.deprosun.dataflattener.parser
+package com.github.deprosun.dataflattener.parser
 
-import java.io.{File, PrintWriter}
-import java.io.{InputStream, StringReader}
+import java.io.{File, InputStream, PrintWriter, StringReader}
 
-import com.deprosun.dataflattener.parser.FlattenerParser.FromFieldContext
+import com.github.deprosun.dataflattener.parser.FlattenerParser.FromFieldContext
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 
 import scala.collection.JavaConversions._

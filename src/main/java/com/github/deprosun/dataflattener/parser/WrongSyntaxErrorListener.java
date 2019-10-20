@@ -1,4 +1,4 @@
-package com.deprosun.dataflattener.parser;
+package com.github.deprosun.dataflattener.parser;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.Parser;
