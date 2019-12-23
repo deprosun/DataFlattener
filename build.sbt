@@ -2,13 +2,15 @@ import Library._
 
 name := "DataFlattener"
 
-version := "0.1"
+version := "0.3"
 
 scalaVersion := "2.11.11"
 
 resolvers ++= repositories
 
-libraryDependencies ++= scalaTestDep ++ antlrDep ++ spark
+libraryDependencies ++=
+  scalaTestDep ++
+    antlrDep
 
 organization := "com.github.deprosun"
 

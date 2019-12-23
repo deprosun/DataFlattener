@@ -1,7 +1,6 @@
 package com.github.deprosun.dataflattener.parser
 
 import com.deprosun.dataflattener.TestStyle
-import org.apache.spark.sql.DataFrame
 
 class MapperTest extends TestStyle {
 
@@ -12,78 +11,32 @@ class MapperTest extends TestStyle {
       val config =
 
         """
-          |SOURCE tableA (
-          | MAPPING (
-          |   a = b VARCHAR (255) NOT NULL (PK)
-          | )
           |
-          | SOURCE tableB FROM c (
-          |   MAPPING (
-          |     d = e INT NOT NULL (PK ConcatBy[,] Reference[TableX])
-          |   )
-          | )
+          |TABLE dim_rules_result FROM rulesResult (
+          |    MAPPING (
+          |        gateTypeId                                               = gateId                                VARCHAR (100)   NOT NULL
+          |        gateTypeDescription                                      = gateDescription                       VARCHAR (100)   NOT NULL
+          |        TO_UUID(gateResultValue)                                 = gateResult                            VARCHAR (100)   NOT NULL
+          |        c.dim_suitability_case_product_natural_uuid              = dim_suitability_case_natural_uuid     UUID            NOT NULL PK FK Reference(edw_suitability.dim_suitabiltity_case_detail,dim_suitability_case_natural_uuid)
+          |        explode(suitabilityRuleResults) (
+          |            explode(suitabilityRuleResults) (
+          |                suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
+          |                ruleResultValue                                      = ruleResult                            VARCHAR (100)   NOT NULL
+          |            )
+          |        )
+          |    )
           |)
+          |
+          |
         """.stripMargin
 
       it("should produce a valid mapper object") {
 
-        val actual = Mapper.getMapper(config)
+        val actual = MapperContext.getMapper(config)
 
-        val expected = Mapper(
-          tableName = "tableA",
-          fromField = Seq(),
-          mappings = Seq(
-            Mapping(
-              path = Seq(PathName("a")),
-              column = "b",
-              dataType = "VARCHAR",
-              precision = List("255"),
-              isNull = false,
-              attr = Seq(PK_FK("PK"))
-            )
-          ),
-          children = Seq(
-            Mapper(
-              tableName = "tableB",
-              fromField = Seq(PathName("c")),
-              mappings = Seq(
-                Mapping(
-                  path = Seq(PathName("d")),
-                  column = "e",
-                  dataType = "INT",
-                  precision = Nil,
-                  isNull = false,
-                  attr = Seq(PK_FK("PK"), Separator(","), Reference("TableX"))
-                )
-              )
-            )
-          )
-        )
+        println(actual)
 
-        assert(actual == expected)
 
-      }
-    }
-
-    describe("when configuration has syntax issues") {
-
-      val config =
-        """ ,cmx c,v
-          |SOURCE tableA (
-          | MAPPING (
-          |   a = b VARCHAdfkghver fR (255) NOT NULL (PK)
-          | )
-          |
-          | SOURCE tableB FROM c (
-          |   MAPPING (
-          |     d = e INT NOT NULL (PK ConcatBy[,] Reference[TableX])
-          |   )
-          | )
-          |)
-        """.stripMargin
-
-      it("should throw an error") {
-        intercept[Exception](Mapper.getMapper(config))
       }
     }
 
