@@ -40,6 +40,18 @@ public class FlattenerBaseListener implements FlattenerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterChild_mapper(FlattenerParser.Child_mapperContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitChild_mapper(FlattenerParser.Child_mapperContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterMapping(FlattenerParser.MappingContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -59,6 +71,18 @@ public class FlattenerBaseListener implements FlattenerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitExplode_mapping(FlattenerParser.Explode_mappingContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterWith(FlattenerParser.WithContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWith(FlattenerParser.WithContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -107,6 +131,18 @@ public class FlattenerBaseListener implements FlattenerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitReference(FlattenerParser.ReferenceContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCopy(FlattenerParser.CopyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCopy(FlattenerParser.CopyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -172,13 +208,13 @@ public class FlattenerBaseListener implements FlattenerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterUuid_func(FlattenerParser.Uuid_funcContext ctx) { }
+	@Override public void enterMap_func(FlattenerParser.Map_funcContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitUuid_func(FlattenerParser.Uuid_funcContext ctx) { }
+	@Override public void exitMap_func(FlattenerParser.Map_funcContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -251,90 +287,6 @@ public class FlattenerBaseListener implements FlattenerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPk_fk(FlattenerParser.Pk_fkContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterEquals(FlattenerParser.EqualsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitEquals(FlattenerParser.EqualsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLess_than(FlattenerParser.Less_thanContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLess_than(FlattenerParser.Less_thanContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterGreater_than(FlattenerParser.Greater_thanContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitGreater_than(FlattenerParser.Greater_thanContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLess_than_equal_to(FlattenerParser.Less_than_equal_toContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLess_than_equal_to(FlattenerParser.Less_than_equal_toContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterGreater_than_equal_to(FlattenerParser.Greater_than_equal_toContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitGreater_than_equal_to(FlattenerParser.Greater_than_equal_toContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAnd(FlattenerParser.AndContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnd(FlattenerParser.AndContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOr(FlattenerParser.OrContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOr(FlattenerParser.OrContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

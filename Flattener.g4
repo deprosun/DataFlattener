@@ -3,8 +3,12 @@ grammar Flattener;
 mappers:
     mapper*;
 
-mapper:
-    'TABLE' table_name ('FROM' fromField)? '(' 'MAPPING' '(' mapping+ ')' mapper* ')'
+mapper
+    :'TABLE' table_name ('FROM' fromField)? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    ;
+
+child_mapper
+    :'TABLE' table_name 'FROM' fromField '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 mapping
@@ -12,7 +16,11 @@ mapping
     ;
 
 explode_mapping
-    : 'explode' '(' json_path ')' '(' mapping+ ')'
+    : '[' json_path ']' with? '(' mapping+ ')'
+    ;
+
+with
+    : 'WITH' json_path+
     ;
 
 straight_mapping
@@ -32,34 +40,9 @@ reference
     : 'Reference' '(' table_name (',' id)? ')'
     ;
 
-//join
-//    : join_type '(' table_name alias ',' condition additional_conditions* ')'
-//    ;
-//
-//join_type
-//    : 'INNER' | 'LEFT' | 'RIGHT'
-//    ;
-//
-//additional_conditions
-//    : and_or condition
-//    ;
-//
-//and_or
-//    : and
-//    | or
-//    ;
-//
-//condition
-//    : json_path conditional_operator json_path
-//    ;
-//
-//conditional_operator
-//    : equals
-//    | less_than
-//    | greater_than
-//    | less_than_equal_to
-//    | greater_than_equal_to
-//    ;
+copy
+    : 'copy' '(' id (',' id)* ')'
+    ;
 
 data_type
     : id
@@ -73,22 +56,19 @@ schema
     :id
     ;
 
-//alias
-//    :id
-//    ;
 
 fromField
     :simple_json_path
     ;
 
 json_path
-    : uuid_func
+    : map_func
     | simple_json_path
     | concat_func
     ;
 
-uuid_func
-    : 'TO_UUID' '(' simple_json_path ')'
+map_func
+    : id '(' json_path? (',' json_path)* ')'
     ;
 
 concat_func
@@ -116,27 +96,6 @@ pk_fk
     :pk
     |fk
     ;
-
-equals: '=';
-
-less_than: '<';
-
-greater_than: '>';
-
-less_than_equal_to: '<=';
-
-greater_than_equal_to: '>=';
-
-and: 'and'
-   | 'AND'
-   | '&&'
-   ;
-
-or: 'or'
-   | 'OR'
-   | '||'
-   ;
-
 
 list_index
     : '['ID']'

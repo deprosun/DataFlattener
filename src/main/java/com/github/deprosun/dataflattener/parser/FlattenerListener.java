@@ -28,6 +28,16 @@ public interface FlattenerListener extends ParseTreeListener {
 	 */
 	void exitMapper(FlattenerParser.MapperContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#child_mapper}.
+	 * @param ctx the parse tree
+	 */
+	void enterChild_mapper(FlattenerParser.Child_mapperContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#child_mapper}.
+	 * @param ctx the parse tree
+	 */
+	void exitChild_mapper(FlattenerParser.Child_mapperContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#mapping}.
 	 * @param ctx the parse tree
 	 */
@@ -47,6 +57,16 @@ public interface FlattenerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExplode_mapping(FlattenerParser.Explode_mappingContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#with}.
+	 * @param ctx the parse tree
+	 */
+	void enterWith(FlattenerParser.WithContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#with}.
+	 * @param ctx the parse tree
+	 */
+	void exitWith(FlattenerParser.WithContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#straight_mapping}.
 	 * @param ctx the parse tree
@@ -87,6 +107,16 @@ public interface FlattenerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitReference(FlattenerParser.ReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#copy}.
+	 * @param ctx the parse tree
+	 */
+	void enterCopy(FlattenerParser.CopyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#copy}.
+	 * @param ctx the parse tree
+	 */
+	void exitCopy(FlattenerParser.CopyContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#data_type}.
 	 * @param ctx the parse tree
@@ -138,15 +168,15 @@ public interface FlattenerListener extends ParseTreeListener {
 	 */
 	void exitJson_path(FlattenerParser.Json_pathContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#uuid_func}.
+	 * Enter a parse tree produced by {@link FlattenerParser#map_func}.
 	 * @param ctx the parse tree
 	 */
-	void enterUuid_func(FlattenerParser.Uuid_funcContext ctx);
+	void enterMap_func(FlattenerParser.Map_funcContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#uuid_func}.
+	 * Exit a parse tree produced by {@link FlattenerParser#map_func}.
 	 * @param ctx the parse tree
 	 */
-	void exitUuid_func(FlattenerParser.Uuid_funcContext ctx);
+	void exitMap_func(FlattenerParser.Map_funcContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#concat_func}.
 	 * @param ctx the parse tree
@@ -207,76 +237,6 @@ public interface FlattenerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPk_fk(FlattenerParser.Pk_fkContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#equals}.
-	 * @param ctx the parse tree
-	 */
-	void enterEquals(FlattenerParser.EqualsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#equals}.
-	 * @param ctx the parse tree
-	 */
-	void exitEquals(FlattenerParser.EqualsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#less_than}.
-	 * @param ctx the parse tree
-	 */
-	void enterLess_than(FlattenerParser.Less_thanContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#less_than}.
-	 * @param ctx the parse tree
-	 */
-	void exitLess_than(FlattenerParser.Less_thanContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#greater_than}.
-	 * @param ctx the parse tree
-	 */
-	void enterGreater_than(FlattenerParser.Greater_thanContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#greater_than}.
-	 * @param ctx the parse tree
-	 */
-	void exitGreater_than(FlattenerParser.Greater_thanContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#less_than_equal_to}.
-	 * @param ctx the parse tree
-	 */
-	void enterLess_than_equal_to(FlattenerParser.Less_than_equal_toContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#less_than_equal_to}.
-	 * @param ctx the parse tree
-	 */
-	void exitLess_than_equal_to(FlattenerParser.Less_than_equal_toContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#greater_than_equal_to}.
-	 * @param ctx the parse tree
-	 */
-	void enterGreater_than_equal_to(FlattenerParser.Greater_than_equal_toContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#greater_than_equal_to}.
-	 * @param ctx the parse tree
-	 */
-	void exitGreater_than_equal_to(FlattenerParser.Greater_than_equal_toContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#and}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnd(FlattenerParser.AndContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#and}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnd(FlattenerParser.AndContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FlattenerParser#or}.
-	 * @param ctx the parse tree
-	 */
-	void enterOr(FlattenerParser.OrContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FlattenerParser#or}.
-	 * @param ctx the parse tree
-	 */
-	void exitOr(FlattenerParser.OrContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#list_index}.
 	 * @param ctx the parse tree

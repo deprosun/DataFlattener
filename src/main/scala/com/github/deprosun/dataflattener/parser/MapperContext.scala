@@ -9,20 +9,18 @@ import scala.language.postfixOps
 
 object MapperContext {
 
-  private def getParser(inputStream: InputStream): FlattenerParser = {
-    val inputCharStream = CharStreams.fromStream(inputStream)
-    val tokenSource = new FlattenerLexer(inputCharStream)
-    val inputTokenStream = new CommonTokenStream(tokenSource)
-    new FlattenerParser(inputTokenStream)
-  }
-
   private def getParser(input: String): FlattenerParser = {
     val inputCharStream = CharStreams.fromReader(new StringReader(input))
     val tokenSource = new FlattenerLexer(inputCharStream)
+
+    tokenSource.removeErrorListeners()
+    tokenSource.addErrorListener(ThrowingErrorListener.INSTANCE)
+
     val inputTokenStream = new CommonTokenStream(tokenSource)
     val p = new FlattenerParser(inputTokenStream)
     p.removeErrorListeners()
-    p.addErrorListener(new WrongSyntaxErrorListener())
+    p.addErrorListener(ThrowingErrorListener.INSTANCE)
+
     p
   }
 
@@ -53,11 +51,24 @@ object MapperContext {
     SimpleJsonPathContext(first :: rest)
   }
 
-  private def getUuidJsonPathContext(context: FlattenerParser.Uuid_funcContext): UuidJsonPathContext = {
+  private def getMapFunctionJsonPathContext(context: FlattenerParser.Map_funcContext): MapFunctionJsonPathContext = {
 
-    val pathNames: List[PathName] = getPathNameList(context.simple_json_path())
+    val funcName = context.id().getText
 
-    UuidJsonPathContext(pathNames)
+    val functionParams: List[JsonPathContext] = context.json_path() map { x =>
+
+      val concat: Option[JsonPathContext] = Option(x.concat_func()) map getConcatJsonPathContext
+      val simple: Option[JsonPathContext] = Option(x.simple_json_path()) map getSimpleJsonPathContext
+      val mapAgain: Option[JsonPathContext] = Option(x.map_func()) map getMapFunctionJsonPathContext
+
+      concat getOrElse {
+        simple getOrElse {
+          mapAgain.get
+        }
+      }
+    } toList
+
+    MapFunctionJsonPathContext(funcName, functionParams)
   }
 
   private def getConcatJsonPathContext(context: FlattenerParser.Concat_funcContext): ConcatJsonPathContext = {
@@ -73,12 +84,12 @@ object MapperContext {
 
     val isSimple = Option(context.simple_json_path()).nonEmpty
 
-    val isUUID = Option(context.uuid_func()).nonEmpty
+    val isMapFunc = Option(context.map_func()).nonEmpty
 
     if (isSimple)
       getSimpleJsonPathContext(context.simple_json_path())
-    else if (isUUID)
-      getUuidJsonPathContext(context.uuid_func())
+    else if (isMapFunc)
+      getMapFunctionJsonPathContext(context.map_func())
     else getConcatJsonPathContext(context.concat_func())
 
   }
@@ -110,9 +121,13 @@ object MapperContext {
 
     val path = getJsonPathContext(context.json_path())
 
+    val copiedKeys = Option(context.`with`()) map { w =>
+      w.json_path().toList map (x => getJsonPathContext(x))
+    } getOrElse Nil
+
     val mappings = context.mapping() map getMappingContext toList
 
-    ExplodeMappingContext(path, mappings)
+    ExplodeMappingContext(path, copiedKeys, mappings)
   }
 
   private def getStraightMappingContext(context: FlattenerParser.Straight_mappingContext): StraightMappingContext = {
@@ -127,7 +142,7 @@ object MapperContext {
       _.id().map(_.getText) toList
     } getOrElse Nil
 
-    val isNull = if (context.null_notnull().getText.equalsIgnoreCase("not null")) false else true
+    val isNull = if (context.null_notnull().getText.equalsIgnoreCase("notnull")) false else true
 
     val attributes = Option(context.attribute()) map (_.map(getAttributeContext) toList) getOrElse Nil
 
@@ -143,6 +158,20 @@ object MapperContext {
       getStraightMappingContext(context.straight_mapping())
   }
 
+  private def getChildMapperContext(context: FlattenerParser.Child_mapperContext): MapperContext = {
+    val tableName = context.table_name().getText
+
+    val fromField: Option[JsonPathContext] = Option(context.fromField()) map { x =>
+      getSimpleJsonPathContext(x.simple_json_path())
+    }
+
+    val mappings = context.mapping() map getMappingContext toList
+
+    val children = context.child_mapper() map getChildMapperContext toList
+
+    MapperContext(tableName, fromField, mappings, children)
+  }
+
   private def getMapperContext(context: FlattenerParser.MapperContext): MapperContext = {
     val tableName = context.table_name().getText
 
@@ -152,17 +181,9 @@ object MapperContext {
 
     val mappings = context.mapping() map getMappingContext toList
 
-    val children = context.mapper() map getMapperContext toList
+    val children = context.child_mapper() map getChildMapperContext toList
 
     MapperContext(tableName, fromField, mappings, children)
-  }
-
-  def getMapper(input: InputStream): MapperContext = {
-    getMapperContext(getParser(input).mapper())
-  }
-
-  def getMapper(input: String): MapperContext = {
-    getMapperContext(getParser(input).mapper())
   }
 
   def getMappers(input: String): List[MapperContext] = {
@@ -188,17 +209,15 @@ case class StraightMappingContext(path: JsonPathContext,
                                   isNull: Boolean,
                                   attributes: List[AttributeContext]) extends MappingContext
 
-case class ExplodeMappingContext(path: JsonPathContext,
+case class ExplodeMappingContext(path: JsonPathContext, copiedKeys: List[JsonPathContext],
                                  mappingContext: List[MappingContext]) extends MappingContext
 
 
-trait JsonPathContext {
-  val path: List[PathName]
-}
+trait JsonPathContext
+
+case class MapFunctionJsonPathContext(funcName: String, functionParams: List[JsonPathContext]) extends JsonPathContext
 
 case class SimpleJsonPathContext(path: List[PathName]) extends JsonPathContext
-
-case class UuidJsonPathContext(path: List[PathName]) extends JsonPathContext
 
 case class ConcatJsonPathContext(path: List[PathName], separator: String) extends JsonPathContext
 
@@ -212,36 +231,3 @@ case object PrimaryKeyAttributeContext extends AttributeContext
 case object ForeignKeyAttributeContext extends AttributeContext
 
 case class PathName(id: String, isNumber: Boolean = false)
-
-//trait JoinContext {
-//  val tableName: String
-//  val alias: String
-//  val conditions: List[ConditionContext]
-//}
-//
-//case class InnerJoinContext(tableName: String, alias: String, conditions: List[ConditionContext]) extends JoinContext
-//
-//case class LeftJoinContext(tableName: String, alias: String, conditions: List[ConditionContext]) extends JoinContext
-//
-//case class RightJoinContext(tableName: String, alias: String, conditions: List[ConditionContext]) extends JoinContext
-
-
-//case class ConditionContext(leftColumn: JsonPathContext, rightColumn: JsonPathContext,
-//                            conditionOperatorContext: ConditionOperatorContext)
-//
-//
-//trait ConditionOperatorContext {
-//  val andOr: String
-//}
-//
-//case class LessThanConditionOperatorContext(andOr: String) extends ConditionOperatorContext
-//
-//case class LessThanEqualToConditionOperatorContext(andOr: String) extends ConditionOperatorContext
-//
-//case class EqualConditionOperatorContext(andOr: String) extends ConditionOperatorContext
-//
-//case class GreaterThanEqualToConditionOperatorContext(andOr: String) extends ConditionOperatorContext
-//
-//case class GreaterThanConditionOperatorContext(andOr: String) extends ConditionOperatorContext
-
-
