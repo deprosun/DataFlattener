@@ -1,4 +1,4 @@
-package com.github.deprosun.dataflattener.parser;
+package com.github.deprosun.dataflattener;
 
 import org.antlr.v4.runtime.*;
 

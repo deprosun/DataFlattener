@@ -1,7 +1,8 @@
-package com.github.deprosun.dataflattener.parser
+package com.github.deprosun.dataflattener.model
 
-import java.io.{InputStream, StringReader}
+import java.io.StringReader
 
+import com.github.deprosun.dataflattener.{FlattenerLexer, FlattenerParser, ThrowingErrorListener, model}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 
 import scala.collection.JavaConversions._
@@ -28,7 +29,7 @@ object MapperContext {
     val value = {
       Option(mfc.list_index()).map(x => x.ID().getText).getOrElse(mfc.getText)
     }
-    PathName(value, value forall Character.isDigit)
+    model.PathName(value, value forall Character.isDigit)
   }
 
   private def getPathNameList(jsonPath: FlattenerParser.Simple_json_pathContext): List[PathName] = {
@@ -99,7 +100,7 @@ object MapperContext {
 
     val columnName = Option(context.id()) map (_.getText)
 
-    ReferenceAttributeContext(tableName, columnName)
+    model.ReferenceAttributeContext(tableName, columnName)
   }
 
   private def getPKFkAttributeContext(context: FlattenerParser.Pk_fkContext): AttributeContext = {
@@ -122,19 +123,27 @@ object MapperContext {
     val path = getJsonPathContext(context.json_path())
 
     val copiedKeys = Option(context.`with`()) map { w =>
-      w.json_path().toList map (x => getJsonPathContext(x))
-    } getOrElse Nil
+      w.mappingAlias() map { x =>
+        val alias = x.column_name().id().getText
+
+        alias -> getJsonPathContext(x.json_path())
+      } toMap
+    } getOrElse Map()
 
     val mappings = context.mapping() map getMappingContext toList
 
-    ExplodeMappingContext(path, copiedKeys, mappings)
+    model.ExplodeMappingContext(path, copiedKeys, mappings)
   }
 
   private def getStraightMappingContext(context: FlattenerParser.Straight_mappingContext): StraightMappingContext = {
 
-    val path = getJsonPathContext(context.json_path())
+    val mappingColumnName = context.mappingAlias().column_name()
 
-    val desiredColumnName = context.column_name().id().getText
+    val mappingJsonPath = context.mappingAlias().json_path()
+
+    val path = getJsonPathContext(mappingJsonPath)
+
+    val desiredColumnName = mappingColumnName.id().getText
 
     val dataType = context.data_type().id().getText
 
@@ -146,7 +155,7 @@ object MapperContext {
 
     val attributes = Option(context.attribute()) map (_.map(getAttributeContext) toList) getOrElse Nil
 
-    StraightMappingContext(path, desiredColumnName, dataType, precision, isNull, attributes)
+    model.StraightMappingContext(path, desiredColumnName, dataType, precision, isNull, attributes)
   }
 
   private def getMappingContext(context: FlattenerParser.MappingContext): MappingContext = {
@@ -209,7 +218,7 @@ case class StraightMappingContext(path: JsonPathContext,
                                   isNull: Boolean,
                                   attributes: List[AttributeContext]) extends MappingContext
 
-case class ExplodeMappingContext(path: JsonPathContext, copiedKeys: List[JsonPathContext],
+case class ExplodeMappingContext(path: JsonPathContext, copiedKeys: Map[String, JsonPathContext],
                                  mappingContext: List[MappingContext]) extends MappingContext
 
 

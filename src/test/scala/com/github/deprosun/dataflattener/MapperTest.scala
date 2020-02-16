@@ -1,6 +1,6 @@
-package com.github.deprosun.dataflattener.parser
+package com.github.deprosun.dataflattener
 
-import com.deprosun.dataflattener.TestStyle
+import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, MapFunctionJsonPathContext, MapperContext, PathName, SimpleJsonPathContext, StraightMappingContext}
 import org.antlr.v4.runtime.misc.ParseCancellationException
 
 import scala.language.postfixOps
@@ -17,10 +17,10 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result (
           |    MAPPING (
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                                      = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                             = gateResult                            VARCHAR (105)   NOT NULL
+          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
@@ -38,9 +38,9 @@ class MapperTest extends TestStyle {
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = List(
-                SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              copiedKeys = Map(
+                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
               mappingContext = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -78,13 +78,13 @@ class MapperTest extends TestStyle {
         """
           |
           |TABLE dim_rules_result FROM rulesResult (
-          |    MAPPING (
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                                      = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                             = gateResult                            VARCHAR (105)   NOT NULL
-          |        )
-          |    )
+          |  MAPPING (
+          |      [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |         (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |         (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |         (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |      )
+          |  )
           |)
           |
           |
@@ -100,9 +100,9 @@ class MapperTest extends TestStyle {
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = List(
-                SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              copiedKeys = Map(
+                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
               mappingContext = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -141,11 +141,11 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                            = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                              = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                     = gateResult                            VARCHAR (105)   NOT NULL
+          |        (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
+          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
@@ -168,9 +168,9 @@ class MapperTest extends TestStyle {
             ),
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = List(
-                SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              copiedKeys = Map(
+                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
               mappingContext = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -209,20 +209,20 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                            = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                              = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                     = gateResult                            VARCHAR (105)   NOT NULL
+          |        (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
+          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |    TABLE childTable FROM someProperty (
           |       MAPPING (
-          |           suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |           [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                   suitabilityRuleId                            = ruleId                                VARCHAR (100)   NOT NULL
-          |                   ruleResultValue                              = ruleResult                            VARCHAR (101)   NOT NULL
-          |                   TO_UUID(gateResultValue)                     = gateResult                            VARCHAR (105)   NOT NULL
+          |           (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
+          |           [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |              (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |              (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |              (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |           )
           |       )
           |    )
@@ -246,9 +246,9 @@ class MapperTest extends TestStyle {
             ),
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = List(
-                SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              copiedKeys = Map(
+                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
               mappingContext = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -283,9 +283,9 @@ class MapperTest extends TestStyle {
                 ),
                 ExplodeMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                  copiedKeys = List(
-                    SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                    SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                  copiedKeys = Map(
+                    "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                    "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
                   mappingContext = List(
                     StraightMappingContext(
                       path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -326,20 +326,20 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                            = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                              = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                     = gateResult                            VARCHAR (105)   NOT NULL
+          |        (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
+          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |    TABLE childTable (
           |       MAPPING (
-          |           suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |           [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                   suitabilityRuleId                            = ruleId                                VARCHAR (100)   NOT NULL
-          |                   ruleResultValue                              = ruleResult                            VARCHAR (101)   NOT NULL
-          |                   TO_UUID(gateResultValue)                     = gateResult                            VARCHAR (105)   NOT NULL
+          |           (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
+          |           [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |              (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |              (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |              (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |           )
           |       )
           |    )
@@ -363,20 +363,20 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                                      = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                             = gateResult                            VARCHAR (105)   NOT NULL
+          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
           |
           |TABLE anotherTable FROM rulesResult (
           |    MAPPING (
-          |        [suitabilityRuleResults] WITH gateResultValue gateTypeDescription (
-          |                suitabilityRuleId                                    = ruleId                                VARCHAR (100)   NOT NULL
-          |                ruleResultValue                                      = ruleResult                            VARCHAR (101)   NOT NULL
-          |                TO_UUID(gateResultValue)                             = gateResult                            VARCHAR (105)   NOT NULL
+          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
+          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
+          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
@@ -395,9 +395,9 @@ class MapperTest extends TestStyle {
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                copiedKeys = List(
-                  SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                  SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                copiedKeys = Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
                 mappingContext = List(
                   StraightMappingContext(
                     path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -428,9 +428,9 @@ class MapperTest extends TestStyle {
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                copiedKeys = List(
-                  SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                  SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                copiedKeys = Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
                 mappingContext = List(
                   StraightMappingContext(
                     path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),

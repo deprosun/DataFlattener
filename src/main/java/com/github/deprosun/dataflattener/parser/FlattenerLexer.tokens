@@ -30,11 +30,11 @@ LINE_COMMENT=24
 '['=6
 ']'=7
 'WITH'=8
-'='=9
-','=10
-'Reference'=11
-'copy'=12
-'.'=13
+','=9
+'Reference'=10
+'copy'=11
+'.'=12
+'='=13
 'CONCAT'=14
 '[ALL]'=15
 'NOT'=16

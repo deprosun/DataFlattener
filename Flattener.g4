@@ -20,11 +20,11 @@ explode_mapping
     ;
 
 with
-    : 'WITH' json_path+
+    : 'WITH' mappingAlias+
     ;
 
 straight_mapping
-    : json_path '=' column_name data_type precision? null_notnull attribute*
+    : mappingAlias data_type precision? null_notnull attribute*
     ;
 
 precision
@@ -59,6 +59,10 @@ schema
 
 fromField
     :simple_json_path
+    ;
+
+mappingAlias
+    : '(' column_name '=' json_path ')'
     ;
 
 json_path

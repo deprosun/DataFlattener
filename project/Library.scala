@@ -5,10 +5,9 @@ object Library {
   val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
   val scalaTestDep: Seq[ModuleID] = Seq(scalaTest % Test)
 
-  val antlrDep: Seq[ModuleID] = Seq(
-    "org.antlr" % "antlr4-runtime" % "4.7" % "provided",
-    "org.antlr" % "antlr4-maven-plugin" % "4.7" % "provided"
-  )
+  val antlrDep: ModuleID = "org.antlr" % "antlr4-runtime" % "4.7" % "provided"
+
+  val json4s = "org.json4s" %% "json4s-native" % "3.2.11"
 
   // If you are developing Cobalt SDK locally.
   val repositories: Seq[MavenRepository] = Seq(

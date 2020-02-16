@@ -9,7 +9,7 @@ Mapper is a DSL designed to be easily read, understood, written and parsable to 
 
 
 ### Example Dataset: FoodData Central Dataset Schema
-For the example set, I wantemad to select a somewhat complex structure (but of course, not too complex) to understand how to easily communicate the flattening effort - especially when one record is responsible for producing rows going into multiple tables. Following is the source schema we are going to deal with. The dataset is inspired from FoodData Central. Check them out, pretty cool!
+For the example set, I wanted to select a somewhat complex structure (but of course, not too complex) to understand how to easily communicate the flattening effort - especially when one record is responsible for producing rows going into multiple tables. Following is the source schema we are going to deal with. The dataset is inspired from FoodData Central. Check them out, pretty cool!
 
 ```
 root

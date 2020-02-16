@@ -1,4 +1,4 @@
-package com.deprosun.dataflattener
+package com.github.deprosun.dataflattener
 
 import org.scalatest.FunSpec
 
