@@ -117,19 +117,19 @@ object FoodItem {
 ```
 TABLE SearchTerm (
     MAPPING(
-        to_uuid(foodSearchCriteria.generalSearchInput)      = id            UUID            NOT NULL    PK
-        foodSearchCriteria.generalSearchInput               = searchTerm    VARCHAR (100)   NOT NULL
+        (id = to_uuid(foodSearchCriteria.generalSearchInput))    UUID            NOT NULL    PK
+        (searchTerm = foodSearchCriteria.generalSearchInput)     VARCHAR (100)   NOT NULL
     )
 )
 
 TABLE FoodItem FROM foods (
     MAPPING(
-        fdcId           = id                 INT                NOT NULL    PK
-        description     = foodDescription    VARCHAR (100)      NULL
-        dataType        = dataType           VARCHAR (100)      NOT NULL
-        gtinUpc         = gtinUpc            INTEGER            NOT NULL
-        publishedDate   = publishedDate      DATE               NULL
-        brandOwner      = brandOwner         VARCHAR (500)      NOT NULL
+        (id = fdcId)                     INT                NOT NULL    PK
+        (foodDescription = description)  VARCHAR (100)      NULL
+        (dataType = dataType)            VARCHAR (100)      NOT NULL
+        (gtinUpc = gtinUpc)              INTEGER            NOT NULL
+        (publishedDate = publishedDate)  DATE               NULL
+        (brandOwner = brandOwner)        VARCHAR (500)      NOT NULL
     )
 )
 ```
@@ -138,8 +138,8 @@ TABLE FoodItem FROM foods (
 ```
 TABLE SearchTerm (
     MAPPING(
-        to_uuid(foodSearchCriteria.generalSearchInput)      = id            UUID            NOT NULL    PK
-        foodSearchCriteria.generalSearchInput               = searchTerm    VARCHAR (100)   NOT NULL
+        (id = to_uuid(foodSearchCriteria.generalSearchInput))            UUID            NOT NULL    PK
+        (searchTerm = foodSearchCriteria.generalSearchInput)             VARCHAR (100)   NOT NULL
     )
 )
 ```
@@ -153,7 +153,7 @@ Here we are saying:
 
 Now let look at the second mapping
 
-```foodSearchCriteria.generalSearchInput               = searchTerm    VARCHAR (100)   NOT NULL```
+```(searchTerm = foodSearchCriteria.generalSearchInput)    VARCHAR (100)   NOT NULL```
 
 Here we are saying:
 >_Use the value `foodSearchCriteria.generalSearchInput` as a VARCHAR (100) for the column `searchTerm` in table `SearchTerm`. Also this value cannot be NULL denoted by `NOT NULL` clause._
@@ -163,12 +163,12 @@ Now lets look at the mapping configuration for `FoodItem`.
 ```
 TABLE FoodItem FROM foods (
     MAPPING(
-        fdcId           = id                 INT                NOT NULL    PK
-        description     = foodDescription    VARCHAR (100)      NULL
-        dataType        = dataType           VARCHAR (100)      NOT NULL
-        gtinUpc         = gtinUpc            INTEGER            NOT NULL
-        publishedDate   = publishedDate      DATE               NULL
-        brandOwner      = brandOwner         VARCHAR (500)      NOT NULL
+        (id = fdcId)                              INT                NOT NULL    PK
+        (foodDescription = description)           VARCHAR (100)      NULL
+        (dataType = dataType)                     VARCHAR (100)      NOT NULL
+        (gtinUpc = gtinUpc)                       INTEGER            NOT NULL
+        (publishedDate = publishedDate)           DATE               NULL
+        (brandOwner = brandOwner)                 VARCHAR (500)      NOT NULL
     )
 )
 ```
@@ -216,20 +216,20 @@ SearchTerm --{ FoodItem
 ```
 TABLE SearchTerm (
     MAPPING(
-        to_uuid(foodSearchCriteria.generalSearchInput)      = id            UUID            NOT NULL    PK
-        foodSearchCriteria.generalSearchInput               = searchTerm    VARCHAR (100)   NOT NULL
-        current_timestamp()                                 = loadTime      TIMESTAMP       NOT NULL
+        (id = to_uuid(foodSearchCriteria.generalSearchInput))       UUID            NOT NULL    PK
+        (searchTerm = foodSearchCriteria.generalSearchInput)        VARCHAR (100)   NOT NULL
+        (loadTime = current_timestamp())                            TIMESTAMP       NOT NULL
     )
 
     TABLE FoodItem FROM foods (
         MAPPING(
-            fdcId           = id                 INT                NOT NULL    PK
-            foreign_key()   = searchId           UUID               NOT NULL    FK
-            description     = foodDescription    VARCHAR (100)      NULL
-            dataType        = dataType           VARCHAR (100)      NOT NULL
-            gtinUpc         = gtinUpc            INTEGER            NOT NULL
-            publishedDate   = publishedDate      DATE               NULL
-            brandOwner      = brandOwner         VARCHAR (500)      NOT NULL
+            (id = fdcId)                      INT                NOT NULL    PK
+            (searchId = foreign_key())        UUID               NOT NULL    FK
+            (foodDescription = description)   VARCHAR (100)      NULL
+            (dataType = dataType)             VARCHAR (100)      NOT NULL
+            (gtinUpc = gtinUpc)               INTEGER            NOT NULL
+            (publishedDate = publishedDate)   DATE               NULL
+            (brandOwner = brandOwner)         VARCHAR (500)      NOT NULL
         )
     )
 )
