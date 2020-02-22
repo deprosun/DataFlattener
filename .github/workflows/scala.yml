@@ -17,3 +17,6 @@ jobs:
       run: sbt test
     - name: sbt to Maven Central
       uses: cosmincatalin/sbt-to-maven-central@v1.0.6
+      env: 
+        NEXUS_USER: ${{secrets.NEXUS_USER}}
+        NEXUS_PASSWORD: ${{secrets.NEXUS_PASSWORD}}
