@@ -20,6 +20,6 @@ jobs:
       env: 
         NEXUS_USER: ${{secrets.NEXUS_USER}}
         NEXUS_PASSWORD: ${{secrets.NEXUS_PASSWORD}}
-        GPG_PK: ${{secrets.GPG_PK}}
+        #GPG_PK: ${{secrets.GPG_PK}}
         
 # sdkjfbsdfsdsdfsdfasdxdfvdfgsadddf
