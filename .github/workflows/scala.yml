@@ -16,7 +16,7 @@ jobs:
 #     - name: Run tests
 #       run: sbt test
     - name: sbt to Maven Central
-      uses: deprosun/sbt-to-maven-central@v1.2
+      uses: deprosun/sbt-to-maven-central@v1.3
       env: 
         NEXUS_USER: ${{secrets.NEXUS_USER}}
         NEXUS_PASSWORD: ${{secrets.NEXUS_PASSWORD}}
