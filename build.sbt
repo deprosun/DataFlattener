@@ -17,7 +17,7 @@ homepage := Some(url("https://github.com/deprosun/DataFlattener"))
 scmInfo := Some(
   ScmInfo(
     url("https://github.com/deprosun/DataFlattener"),
-    "https://github.com/deprosun/DataFlattener.git"
+    "https://github.com/deprosun/DataFlattener.git" //skdjhsd
   )
 )
 
