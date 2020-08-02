@@ -1,4 +1,7 @@
 # DataFlattener
+
+![Scala Test](https://github.com/deprosun/DataFlattener/workflows/Scala%20Test/badge.svg?branch=master)
+
 This project provides the parser for files with `.mapper` extension.
 
 ## What is a Mapper file?
