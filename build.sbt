@@ -27,3 +27,5 @@ publishTo := Some(
   else
     Opts.resolver.sonatypeStaging
 )
+
+licenses += ("MIT", url("https://opensource.org/licenses/MIT"))
