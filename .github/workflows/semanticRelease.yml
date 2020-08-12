@@ -19,3 +19,6 @@ jobs:
         uses: hennejg/github-tag-action@v4.1.jh5
         with:
           github_token: ${{ secrets.TOKEN }}
+          default_bump: patch
+          tag_prefix: v
+          release_branches: master

@@ -16,11 +16,11 @@ mapping
     ;
 
 explode_mapping
-    : '[' json_path ']' with? '(' mapping+ ')'
+    : 'explode(' json_path ')' with? '(' mapping+ ')'
     ;
 
 with
-    : 'WITH' mappingAlias+
+    : 'WITH' '(' mappingAlias (',' mappingAlias)* ')'
     ;
 
 straight_mapping
@@ -62,7 +62,7 @@ fromField
     ;
 
 mappingAlias
-    : '(' column_name '=' json_path ')'
+    :  column_name '=' json_path
     ;
 
 json_path

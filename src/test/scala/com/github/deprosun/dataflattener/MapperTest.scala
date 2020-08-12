@@ -79,10 +79,13 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |  MAPPING (
-          |      [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |         (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |         (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |         (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |      explode(suitabilityRuleResults) WITH (
+          |      gateResultValue = gateResultValue,
+          |      gateTypeDescription = gateTypeDescription
+          |      ) (
+          |         ruleId = suitabilityRuleId                        VARCHAR (100)   NOT NULL
+          |         ruleResult = ruleResultValue                      VARCHAR (101)   NOT NULL
+          |         gateResult = TO_UUID(gateResultValue)             VARCHAR (105)   NOT NULL
           |      )
           |  )
           |)

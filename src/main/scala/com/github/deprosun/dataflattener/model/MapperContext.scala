@@ -2,7 +2,9 @@ package com.github.deprosun.dataflattener.model
 
 import java.io.StringReader
 
-import com.github.deprosun.dataflattener.{FlattenerLexer, FlattenerParser, ThrowingErrorListener, model}
+import com.github.deprosun.dataflattener.ThrowingErrorListener
+import com.github.deprosun.dataflattener.parser.{FlattenerLexer, FlattenerParser}
+//import com.github.deprosun.dataflattener. model}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 
 import scala.collection.JavaConversions._
@@ -13,6 +15,8 @@ object MapperContext {
   private def getParser(input: String): FlattenerParser = {
     val inputCharStream = CharStreams.fromReader(new StringReader(input))
     val tokenSource = new FlattenerLexer(inputCharStream)
+
+
 
     tokenSource.removeErrorListeners()
     tokenSource.addErrorListener(ThrowingErrorListener.INSTANCE)
@@ -29,7 +33,7 @@ object MapperContext {
     val value = {
       Option(mfc.list_index()).map(x => x.ID().getText).getOrElse(mfc.getText)
     }
-    model.PathName(value, value forall Character.isDigit)
+    PathName(value, value forall Character.isDigit)
   }
 
   private def getPathNameList(jsonPath: FlattenerParser.Simple_json_pathContext): List[PathName] = {
@@ -42,6 +46,9 @@ object MapperContext {
     first :: rest
   }
 
+  /**
+    * Convert FlattenerParser.Simple_json_pathContext to SimpleJsonPathContext
+    */
   private def getSimpleJsonPathContext(context: FlattenerParser.Simple_json_pathContext): SimpleJsonPathContext = {
     val first = PathName(context.first_field_name().getText)
 
@@ -52,6 +59,9 @@ object MapperContext {
     SimpleJsonPathContext(first :: rest)
   }
 
+  /**
+    * Convert FlattenerParser.Map_funcContext to MapFunctionJsonPathContext
+    */
   private def getMapFunctionJsonPathContext(context: FlattenerParser.Map_funcContext): MapFunctionJsonPathContext = {
 
     val funcName = context.id().getText
@@ -72,6 +82,9 @@ object MapperContext {
     MapFunctionJsonPathContext(funcName, functionParams)
   }
 
+  /**
+    * Convert FlattenerParser.Concat_funcContext to ConcatJsonPathContext
+    */
   private def getConcatJsonPathContext(context: FlattenerParser.Concat_funcContext): ConcatJsonPathContext = {
 
     val pathNames: List[PathName] = getPathNameList(context.simple_json_path())
@@ -81,6 +94,9 @@ object MapperContext {
     ConcatJsonPathContext(pathNames, separator)
   }
 
+  /**
+    * Convert FlattenerParser.Json_pathContext to JsonPathContext
+    */
   private def getJsonPathContext(context: FlattenerParser.Json_pathContext): JsonPathContext = {
 
     val isSimple = Option(context.simple_json_path()).nonEmpty
@@ -95,14 +111,20 @@ object MapperContext {
 
   }
 
+  /**
+    * Convert FlattenerParser.ReferenceContext to ReferenceAttributeContext
+    */
   private def getReferenceAttributeContext(context: FlattenerParser.ReferenceContext): ReferenceAttributeContext = {
     val tableName = context.table_name().getText
 
     val columnName = Option(context.id()) map (_.getText)
 
-    model.ReferenceAttributeContext(tableName, columnName)
+    ReferenceAttributeContext(tableName, columnName)
   }
 
+  /**
+    * Convert FlattenerParser.Pk_fkContext to AttributeContext
+    */
   private def getPKFkAttributeContext(context: FlattenerParser.Pk_fkContext): AttributeContext = {
     val isPk = Option(context.pk()).isDefined
 
@@ -111,6 +133,9 @@ object MapperContext {
     ForeignKeyAttributeContext
   }
 
+  /**
+    * Convert FlattenerParser.AttributeContext to AttributeContext
+    */
   private def getAttributeContext(context: FlattenerParser.AttributeContext): AttributeContext = {
     val isReference = Option(context.reference()).nonEmpty
 
@@ -118,6 +143,9 @@ object MapperContext {
     else getPKFkAttributeContext(context.pk_fk())
   }
 
+  /**
+    * Convert FlattenerParser.Explode_mappingContext to ExplodeMappingContext
+    */
   private def getExplodeMappingContext(context: FlattenerParser.Explode_mappingContext): ExplodeMappingContext = {
 
     val path = getJsonPathContext(context.json_path())
@@ -132,9 +160,12 @@ object MapperContext {
 
     val mappings = context.mapping() map getMappingContext toList
 
-    model.ExplodeMappingContext(path, copiedKeys, mappings)
+    ExplodeMappingContext(path, copiedKeys, mappings)
   }
 
+  /**
+    * Convert FlattenerParser.Straight_mappingContext to StraightMappingContext case class
+    */
   private def getStraightMappingContext(context: FlattenerParser.Straight_mappingContext): StraightMappingContext = {
 
     val mappingColumnName = context.mappingAlias().column_name()
@@ -155,9 +186,12 @@ object MapperContext {
 
     val attributes = Option(context.attribute()) map (_.map(getAttributeContext) toList) getOrElse Nil
 
-    model.StraightMappingContext(path, desiredColumnName, dataType, precision, isNull, attributes)
+    StraightMappingContext(path, desiredColumnName, dataType, precision, isNull, attributes)
   }
 
+  /**
+    * Function to convert FlattenerParser.MappingContext to MappingContext case class
+    */
   private def getMappingContext(context: FlattenerParser.MappingContext): MappingContext = {
     val isExplode = Option(context.explode_mapping()).nonEmpty
 
@@ -167,6 +201,9 @@ object MapperContext {
       getStraightMappingContext(context.straight_mapping())
   }
 
+  /**
+    * Function to convert FlattenerParser.Child_mapperContext to MapperContext case class
+    */
   private def getChildMapperContext(context: FlattenerParser.Child_mapperContext): MapperContext = {
     val tableName = context.table_name().getText
 
@@ -181,6 +218,9 @@ object MapperContext {
     MapperContext(tableName, fromField, mappings, children)
   }
 
+  /**
+    * Function to convert FlattenerParser.MapperContext to MapperContext case class
+    */
   private def getMapperContext(context: FlattenerParser.MapperContext): MapperContext = {
     val tableName = context.table_name().getText
 
@@ -195,6 +235,9 @@ object MapperContext {
     MapperContext(tableName, fromField, mappings, children)
   }
 
+  /**
+    * This function returns the mapper context from the input string
+    */
   def getMappers(input: String): List[MapperContext] = {
     getParser(input).mappers().mapper() map getMapperContext toList
   }

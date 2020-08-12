@@ -103,7 +103,6 @@ trait Transformer {
     }
   }
 
-
   /**
     * Transform the JSON input into multiple column values
     *
