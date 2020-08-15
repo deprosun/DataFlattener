@@ -6,11 +6,16 @@ import com.github.deprosun.dataflattener.ThrowingErrorListener
 import com.github.deprosun.dataflattener.parser.{FlattenerLexer, FlattenerParser}
 //import com.github.deprosun.dataflattener. model}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
+import org.json4s._
+import org.json4s.native.Serialization
+import org.json4s.native.Serialization.{read, write}
 
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
 
 object MapperContext {
+
+  implicit val formats: AnyRef with Formats = Serialization.formats(NoTypeHints)
 
   private def getParser(input: String): FlattenerParser = {
     val inputCharStream = CharStreams.fromReader(new StringReader(input))
@@ -235,6 +240,10 @@ object MapperContext {
     MapperContext(tableName, fromField, mappings, children)
   }
 
+  def toJSON(mapperContext: MapperContext): String = {
+    write[MapperContext](mapperContext)
+  }
+
   /**
     * This function returns the mapper context from the input string
     */
@@ -248,7 +257,6 @@ case class MapperContext(tableName: String,
                          fromField: Option[JsonPathContext],
                          mappings: List[MappingContext],
                          children: List[MapperContext])
-
 
 trait MappingContext {
   val path: JsonPathContext

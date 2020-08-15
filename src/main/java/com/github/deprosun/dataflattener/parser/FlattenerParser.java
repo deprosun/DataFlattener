@@ -237,7 +237,7 @@ public class FlattenerParser extends Parser {
 				setState(76); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( _la==T__5 || _la==ID );
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__5) | (1L << T__12) | (1L << ID))) != 0) );
 			setState(78);
 			match(T__4);
 			setState(82);
@@ -336,7 +336,7 @@ public class FlattenerParser extends Parser {
 				setState(97); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( _la==T__5 || _la==ID );
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__5) | (1L << T__12) | (1L << ID))) != 0) );
 			setState(99);
 			match(T__4);
 			setState(103);
@@ -396,6 +396,7 @@ public class FlattenerParser extends Parser {
 			setState(110);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
+			case T__12:
 			case ID:
 				enterOuterAlt(_localctx, 1);
 				{
@@ -490,7 +491,7 @@ public class FlattenerParser extends Parser {
 				setState(122); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( _la==T__5 || _la==ID );
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__5) | (1L << T__12) | (1L << ID))) != 0) );
 			setState(124);
 			match(T__4);
 			}
@@ -1081,11 +1082,11 @@ public class FlattenerParser extends Parser {
 	}
 
 	public static class MappingAliasContext extends ParserRuleContext {
-		public Column_nameContext column_name() {
-			return getRuleContext(Column_nameContext.class,0);
-		}
 		public Json_pathContext json_path() {
 			return getRuleContext(Json_pathContext.class,0);
+		}
+		public Column_nameContext column_name() {
+			return getRuleContext(Column_nameContext.class,0);
 		}
 		public MappingAliasContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1108,11 +1109,11 @@ public class FlattenerParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(201);
-			column_name();
+			json_path();
 			setState(202);
 			match(T__11);
 			setState(203);
-			json_path();
+			column_name();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1870,8 +1871,8 @@ public class FlattenerParser extends Parser {
 		"\2\u00bf\31\3\2\2\2\u00c0\u00c1\5\34\17\2\u00c1\u00c2\7\r\2\2\u00c2\u00c4"+
 		"\3\2\2\2\u00c3\u00c0\3\2\2\2\u00c3\u00c4\3\2\2\2\u00c4\u00c5\3\2\2\2\u00c5"+
 		"\u00c6\5:\36\2\u00c6\33\3\2\2\2\u00c7\u00c8\5:\36\2\u00c8\35\3\2\2\2\u00c9"+
-		"\u00ca\5(\25\2\u00ca\37\3\2\2\2\u00cb\u00cc\5,\27\2\u00cc\u00cd\7\16\2"+
-		"\2\u00cd\u00ce\5\"\22\2\u00ce!\3\2\2\2\u00cf\u00d3\5$\23\2\u00d0\u00d3"+
+		"\u00ca\5(\25\2\u00ca\37\3\2\2\2\u00cb\u00cc\5\"\22\2\u00cc\u00cd\7\16"+
+		"\2\2\u00cd\u00ce\5,\27\2\u00ce!\3\2\2\2\u00cf\u00d3\5$\23\2\u00d0\u00d3"+
 		"\5(\25\2\u00d1\u00d3\5&\24\2\u00d2\u00cf\3\2\2\2\u00d2\u00d0\3\2\2\2\u00d2"+
 		"\u00d1\3\2\2\2\u00d3#\3\2\2\2\u00d4\u00d5\5:\36\2\u00d5\u00d7\7\5\2\2"+
 		"\u00d6\u00d8\5\"\22\2\u00d7\u00d6\3\2\2\2\u00d7\u00d8\3\2\2\2\u00d8\u00dd"+

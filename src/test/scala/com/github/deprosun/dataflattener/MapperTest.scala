@@ -4,6 +4,7 @@ import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, MapFuncti
 import org.antlr.v4.runtime.misc.ParseCancellationException
 
 import scala.language.postfixOps
+import org.json4s.native.JsonMethods._
 
 class MapperTest extends TestStyle {
 
@@ -17,10 +18,10 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result (
           |    MAPPING (
-          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |           suitabilityRuleId               = ruleId            VARCHAR (100)   NOT NULL
+          |           ruleResultValue                 = ruleResult        VARCHAR (101)   NOT NULL
+          |           TO_UUID(gateResultValue)        = gateResultValue   VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
@@ -57,7 +58,7 @@ class MapperTest extends TestStyle {
                     funcName = "TO_UUID",
                     functionParams = List(SimpleJsonPathContext(List(PathName("gateResultValue"))))
                   ),
-                  desiredColumnName = "gateResult", dataType = "VARCHAR", precision = List("105"),
+                  desiredColumnName = "gateResultValue", dataType = "VARCHAR", precision = List("105"),
                   isNull = false, attributes = Nil
                 )
               )
@@ -66,7 +67,9 @@ class MapperTest extends TestStyle {
           children = Nil
         )
 
-        assert(actual == expected)
+        val diff = parse(MapperContext.toJSON(actual)).diff(parse(MapperContext.toJSON(expected)))
+
+        assert(actual == expected, diff)
 
       }
     }
@@ -79,13 +82,10 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |  MAPPING (
-          |      explode(suitabilityRuleResults) WITH (
-          |      gateResultValue = gateResultValue,
-          |      gateTypeDescription = gateTypeDescription
-          |      ) (
-          |         ruleId = suitabilityRuleId                        VARCHAR (100)   NOT NULL
-          |         ruleResult = ruleResultValue                      VARCHAR (101)   NOT NULL
-          |         gateResult = TO_UUID(gateResultValue)             VARCHAR (105)   NOT NULL
+          |      explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |         suitabilityRuleId           = ruleId                        VARCHAR (100)   NOT NULL
+          |         ruleResultValue             = ruleResult                        VARCHAR (101)   NOT NULL
+          |         TO_UUID(gateResultValue)    = gateResult             VARCHAR (105)   NOT NULL
           |      )
           |  )
           |)
@@ -131,7 +131,9 @@ class MapperTest extends TestStyle {
           children = Nil
         )
 
-        assert(actual == expected)
+        val diff = parse(MapperContext.toJSON(actual)).diff(parse(MapperContext.toJSON(expected)))
+
+        assert(actual == expected, diff)
 
       }
     }
@@ -144,11 +146,11 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
-          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |        suitabilityRuleId = ruleId                                VARCHAR (100)   NOT NULL
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |           suitabilityRuleId = ruleId                         VARCHAR (100)   NOT NULL
+          |           ruleResultValue = ruleResult                       VARCHAR (101)   NOT NULL
+          |           TO_UUID(gateResultValue) = gateResultValue          VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
@@ -190,7 +192,7 @@ class MapperTest extends TestStyle {
                     funcName = "TO_UUID",
                     functionParams = List(SimpleJsonPathContext(List(PathName("gateResultValue"))))
                   ),
-                  desiredColumnName = "gateResult", dataType = "VARCHAR", precision = List("105"),
+                  desiredColumnName = "gateResultValue", dataType = "VARCHAR", precision = List("105"),
                   isNull = false, attributes = Nil
                 )
               )
@@ -199,8 +201,9 @@ class MapperTest extends TestStyle {
           children = Nil
         )
 
-        assert(actual == expected)
+        val diff = parse(MapperContext.toJSON(actual)).diff(parse(MapperContext.toJSON(expected)))
 
+        assert(actual == expected, diff)
       }
     }
 
@@ -212,20 +215,20 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
-          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |        suitabilityRuleId  = ruleId                               VARCHAR (100)   NOT NULL
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |           suitabilityRuleId = ruleId                        VARCHAR (100)   NOT NULL
+          |           ruleResultValue = ruleResult                      VARCHAR (101)   NOT NULL
+          |           TO_UUID(gateResultValue) = gateResult             VARCHAR (105)   NOT NULL
           |        )
           |    )
           |    TABLE childTable FROM someProperty (
           |       MAPPING (
-          |           (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
-          |           [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |              (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |              (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |              (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |           suitabilityRuleId  = ruleId                               VARCHAR (100)   NOT NULL
+          |           explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |              suitabilityRuleId = ruleId                        VARCHAR (100)   NOT NULL
+          |              ruleResultValue = ruleResult                      VARCHAR (101)   NOT NULL
+          |              TO_UUID(gateResultValue) = gateResult             VARCHAR (105)   NOT NULL
           |           )
           |       )
           |    )
@@ -316,7 +319,9 @@ class MapperTest extends TestStyle {
           )
         )
 
-        assert(actual == expected)
+        val diff = parse(MapperContext.toJSON(actual)).diff(parse(MapperContext.toJSON(expected)))
+
+        assert(actual == expected, diff)
 
       }
     }
@@ -330,7 +335,7 @@ class MapperTest extends TestStyle {
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
           |        (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
-          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
           |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
           |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
           |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
@@ -339,7 +344,7 @@ class MapperTest extends TestStyle {
           |    TABLE childTable (
           |       MAPPING (
           |           (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
-          |           [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
+          |           explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
           |              (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
           |              (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
           |              (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
@@ -366,20 +371,20 @@ class MapperTest extends TestStyle {
           |
           |TABLE dim_rules_result FROM rulesResult (
           |    MAPPING (
-          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |           suitabilityRuleId        = ruleId                VARCHAR (100)   NOT NULL
+          |           ruleResultValue          = ruleResult           VARCHAR (101)   NOT NULL
+          |           TO_UUID(gateResultValue) = gateResult            VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)
           |
           |TABLE anotherTable FROM rulesResult (
           |    MAPPING (
-          |        [suitabilityRuleResults] WITH (gateResultValue = gateResultValue) (gateTypeDescription = gateTypeDescription) (
-          |           (ruleId = suitabilityRuleId)                        VARCHAR (100)   NOT NULL
-          |           (ruleResult = ruleResultValue)                      VARCHAR (101)   NOT NULL
-          |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |           suitabilityRuleId        = ruleId                VARCHAR (100)   NOT NULL
+          |           ruleResultValue          = ruleResult           VARCHAR (101)   NOT NULL
+          |           TO_UUID(gateResultValue) = gateResult            VARCHAR (105)   NOT NULL
           |        )
           |    )
           |)

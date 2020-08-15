@@ -62,7 +62,7 @@ fromField
     ;
 
 mappingAlias
-    :  column_name '=' json_path
+    :  json_path '=' column_name
     ;
 
 json_path

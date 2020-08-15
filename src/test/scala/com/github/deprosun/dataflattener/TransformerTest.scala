@@ -1,6 +1,7 @@
 package com.github.deprosun.dataflattener
 
 import com.github.deprosun.dataflattener.model.{PathName, SimpleJsonPathContext, StraightMappingContext}
+import org.json4s.JsonAST.{JNothing, JNull, JString}
 import org.json4s.{JValue, JsonAST}
 import org.json4s.native.JsonMethods._
 
@@ -12,11 +13,13 @@ class TransformerTest extends TestStyle {
     val transformer = new Transformer {
       override val udfMap: Map[String, this.MapFunc] = Map()
 
-      override def extractValue(json: JsonAST.JValue, mappingContext: StraightMappingContext): Any =
+      override def extractValue(json: JsonAST.JValue, mappingContext: StraightMappingContext): Any = {
         mappingContext.dataType.trim.toLowerCase match {
           case "string" => json.extract[String]
           case "int" => json.extract[Int]
         }
+
+      }
     }
 
     val json: JValue = parse(

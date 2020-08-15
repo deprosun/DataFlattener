@@ -1,7 +1,7 @@
 package com.github.deprosun.dataflattener
 
 import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, JsonPathContext, MapFunctionJsonPathContext, MapperContext, MappingContext, PathName, SimpleJsonPathContext, StraightMappingContext}
-import org.json4s.JsonAST.{JField, JObject, JValue}
+import org.json4s.JsonAST.{JDouble, JField, JInt, JNothing, JNull, JObject, JString, JValue}
 
 trait Transformer {
 
@@ -9,7 +9,49 @@ trait Transformer {
 
   val udfMap: Map[String, MapFunc]
 
-  def extractValue(json: JValue, mappingContext: StraightMappingContext): Any
+  val StringToInt: String = "stringToInt"
+  val StringToDouble: String = "stringToDouble"
+  val StringToDecimal: String = "stringToDecimal"
+  val StringToLong: String = "stringToLong"
+  val StringToBoolean: String = "stringToBoolean"
+  val StringToShort: String = "stringToShort"
+  val StringToFloat: String = "stringToFloat"
+
+  private val dataTypeExtractionFunctions = Map(
+    StringToInt -> ((s: String) => s.toInt),
+    StringToDouble -> ((s: String) => s.toDouble),
+    StringToDecimal -> ((s: String) => s.toDouble),
+    StringToLong -> ((s: String) => s.toLong),
+    StringToBoolean -> ((s: String) => s.toBoolean),
+    StringToShort -> ((s: String) => s.toShort),
+    StringToFloat -> ((s: String) => s.toFloat)
+  )
+
+  private def throwIllegalDataTypeError(message: String) = throw new IllegalArgumentException()
+
+  def extractString(json: JValue): Option[String] = Option {
+    json match {
+      case JNull | JNothing => null
+      case JString(s) => s
+      case JInt(num) => num.toString
+      case JDouble(num) => num.toString
+      case JObject(s) => throw new IllegalArgumentException(s"Cannot convert JObject to String")
+    }
+  }
+
+  def extractValue(json: JValue, mappingContext: StraightMappingContext): Any = {
+    val canBeNull = mappingContext.isNull
+    val precision = mappingContext.precision
+    val desiredColumnName = mappingContext.desiredColumnName
+    val dataType = mappingContext.dataType
+
+    json match {
+      case JNothing | JNull =>
+        assert(canBeNull, s"Column ${mappingContext.desiredColumnName} cannot be null.")
+        None
+      case JString(s) if dataType == "varchar" => s
+    }
+  }
 
   /**
     * Traverses and extracts the value specified by the path context
