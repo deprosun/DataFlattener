@@ -5,7 +5,7 @@ object Library {
   val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
   val scalaTestDep: Seq[ModuleID] = Seq(scalaTest % Test)
 
-  val antlrDep: ModuleID = "org.antlr" % "antlr4-runtime" % "4.7" % "provided"
+  val antlrDep: ModuleID = "org.antlr" % "antlr4-runtime" % "4.7" //% "provided"
 
   val json4s = "org.json4s" %% "json4s-native" % "3.2.11"
 
