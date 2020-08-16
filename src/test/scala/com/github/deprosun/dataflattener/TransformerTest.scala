@@ -1,25 +1,34 @@
 package com.github.deprosun.dataflattener
 
-import com.github.deprosun.dataflattener.model.{PathName, SimpleJsonPathContext, StraightMappingContext}
-import org.json4s.JsonAST.{JNothing, JNull, JString}
-import org.json4s.{JValue, JsonAST}
+import com.github.deprosun.dataflattener.model.{MapperContext, PathName, SimpleJsonPathContext, StraightMappingContext}
+import org.json4s
+import org.json4s.JValue
+import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods._
+import org.slf4j.{Logger, LoggerFactory}
+
+import scala.util.Random
 
 
 class TransformerTest extends TestStyle {
 
+  def getLogger(): Logger = LoggerFactory.getLogger("test")
+
   describe("A transformer with only string and int as extraction rules in the world") {
 
     val transformer = new Transformer {
+
+      override val logger: Logger = getLogger()
+
+      //define your custom transformation functions
       override val udfMap: Map[String, this.MapFunc] = Map()
 
-      override def extractValue(json: JsonAST.JValue, mappingContext: StraightMappingContext): Any = {
-        mappingContext.dataType.trim.toLowerCase match {
-          case "string" => json.extract[String]
-          case "int" => json.extract[Int]
-        }
+      //define your custom data type
+      override val customDataType: Map[String, JValue => Option[Any]] = Map()
 
-      }
+      //vault for sensitive data retrieval
+      override val vaultAddress: String = ""
+      override val vaultToken: String = ""
     }
 
     val json: JValue = parse(
@@ -34,22 +43,18 @@ class TransformerTest extends TestStyle {
     )
 
 
-    it("should be able to retrieve string value from a path") {
+    it("should throw error when a varchar is requested from an int") {
 
       val mapping = StraightMappingContext(
         SimpleJsonPathContext(path = List(PathName("a"))),
         desiredColumnName = "newColumnA",
-        dataType = "string",
+        dataType = "varchar",
         precision = Nil,
         isNull = false,
         attributes = Nil
       )
 
-      transformer.getValueFromStraight(json, mapping) match {
-        case ColumnValue(colName, value) =>
-          assert(colName == mapping.desiredColumnName, "Column names don't match.")
-          assert(value == "5", "Column values don't match.")
-      }
+      intercept[IllegalArgumentException](transformer.getValueFromStraight(json, mapping))
 
     }
 
@@ -67,7 +72,10 @@ class TransformerTest extends TestStyle {
       transformer.getValueFromStraight(json, mapping) match {
         case ColumnValue(colName, value) =>
           assert(colName == mapping.desiredColumnName, "Column names don't match.")
-          assert(value == 5, "Column values don't match.")
+          value match {
+            case None => fail("fail")
+            case Some(x: Int) => assert(x == 5, "Column values don't match.")
+          }
       }
 
     }
@@ -77,7 +85,7 @@ class TransformerTest extends TestStyle {
       val mapping = StraightMappingContext(
         SimpleJsonPathContext(path = List(PathName("b"), PathName("c"))),
         desiredColumnName = "newColumnA",
-        dataType = "string",
+        dataType = "varchar",
         precision = Nil,
         isNull = false,
         attributes = Nil
@@ -86,7 +94,10 @@ class TransformerTest extends TestStyle {
       transformer.getValueFromStraight(json, mapping) match {
         case ColumnValue(colName, value) =>
           assert(colName == mapping.desiredColumnName, "Column names don't match.")
-          assert(value == "foo", "Column values don't match.")
+          value match {
+            case None => fail("fail")
+            case Some(x: String) => assert(x == "foo", "Column values don't match.")
+          }
       }
 
     }
@@ -96,15 +107,13 @@ class TransformerTest extends TestStyle {
       val mapping = StraightMappingContext(
         SimpleJsonPathContext(path = List(PathName("a"))),
         desiredColumnName = "newColumnA",
-        dataType = "varchar",
+        dataType = "unknown",
         precision = Nil,
         isNull = false,
         attributes = Nil
       )
 
-      intercept[Exception](transformer.getValueFromStraight(json, mapping)) match {
-        case x => assert(x.isInstanceOf[MatchError])
-      }
+      intercept[UnsupportedOperationException](transformer.getValueFromStraight(json, mapping))
 
     }
 
@@ -112,13 +121,23 @@ class TransformerTest extends TestStyle {
 
   describe("A transformer that only produces json") {
 
-    val transformer = new Transformer {
+    val transformer: Transformer = new Transformer {
+
+      override val logger: Logger = getLogger()
+
       override val udfMap: Map[String, this.MapFunc] = Map()
 
-      override def extractValue(json: JsonAST.JValue, mappingContext: StraightMappingContext): Any =
-        mappingContext.dataType.trim.toLowerCase match {
-          case "json" => json
-        }
+      def extractJson(json: JValue): Option[Any] = Option(json)
+
+      override val customDataType: Map[String, JValue => Option[Any]] = Map(
+        "JSON" -> extractJson
+      )
+
+      //vault for sensitive data retrieval
+      override val vaultAddress: String = ""
+
+      override val vaultToken: String = ""
+
     }
 
     val json: JValue = parse(
@@ -149,11 +168,75 @@ class TransformerTest extends TestStyle {
       transformer.getValueFromStraight(json, mapping) match {
         case ColumnValue(colName, value) =>
           assert(colName == mapping.desiredColumnName, "Column names don't match.")
-          assert(value == expectedValue, "Column values don't match.")
+          value match {
+            case None => fail("fail")
+            case Some(x: JValue) => assert(x == expectedValue, "Column values don't match.")
+          }
       }
 
     }
 
   }
 
+  describe("A full transformation") {
+
+    def superSafeEncryptionApi(s: String) = {
+      s.reverse.foldLeft("") { (acc, x) =>
+        acc + Random.nextPrintableChar() + x
+      }
+    }
+
+    val transformer: Transformer = new Transformer {
+
+      override val logger: Logger = getLogger()
+
+      def encrypt(json: List[JValue]): JValue = json match {
+        case JString(s) :: Nil => JString(superSafeEncryptionApi(s))
+        case x =>
+          throw new UnknownError(s"Should not get here $x")
+      }
+
+      override val udfMap: Map[String, this.MapFunc] = Map(
+        "encrypt" -> encrypt
+      )
+
+      //vault for sensitive data retrieval
+      override val vaultAddress: String = ""
+      override val vaultToken: String = ""
+
+      override val customDataType: Map[String, json4s.JValue => Option[Any]] = Map()
+    }
+
+    val json: JValue = parse(
+      """
+        |{
+        | "id" : 5,
+        | "name" : {
+        |   "first" : "Karan",
+        |   "last" : "Gupta",
+        |   "SSN" : "123-234-556"
+        | }
+        |}
+      """.stripMargin
+    )
+
+    val mapper =
+      """
+        |TABLE User (
+        |    MAPPING (
+        |        id                 =   partyId       Int             NOT NULL
+        |        name.first         =   firstName     VARCHAR (100)   NOT NULL
+        |        name.last          =   lastName      VARCHAR (100)   NOT NULL
+        |        encrypt(name.SSN)  =   ssn           VARCHAR (100)   NOT NULL
+        |    )
+        |)
+      """.stripMargin
+
+    MapperContext.getMappers(mapper) foreach { x =>
+      println(
+        transformer.transform(json, x)
+      )
+    }
+
+  }
 }

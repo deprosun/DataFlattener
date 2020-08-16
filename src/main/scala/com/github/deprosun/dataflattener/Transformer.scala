@@ -1,57 +1,16 @@
 package com.github.deprosun.dataflattener
 
-import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, JsonPathContext, MapFunctionJsonPathContext, MapperContext, MappingContext, PathName, SimpleJsonPathContext, StraightMappingContext}
-import org.json4s.JsonAST.{JDouble, JField, JInt, JNothing, JNull, JObject, JString, JValue}
+import com.github.deprosun.dataflattener.model._
+import org.json4s.JsonAST.{JField, JObject, JValue}
+import org.slf4j.Logger
 
-trait Transformer {
+trait Transformer extends Extraction {
+
+  val logger: Logger
 
   type MapFunc = List[JValue] => JValue
 
   val udfMap: Map[String, MapFunc]
-
-  val StringToInt: String = "stringToInt"
-  val StringToDouble: String = "stringToDouble"
-  val StringToDecimal: String = "stringToDecimal"
-  val StringToLong: String = "stringToLong"
-  val StringToBoolean: String = "stringToBoolean"
-  val StringToShort: String = "stringToShort"
-  val StringToFloat: String = "stringToFloat"
-
-  private val dataTypeExtractionFunctions = Map(
-    StringToInt -> ((s: String) => s.toInt),
-    StringToDouble -> ((s: String) => s.toDouble),
-    StringToDecimal -> ((s: String) => s.toDouble),
-    StringToLong -> ((s: String) => s.toLong),
-    StringToBoolean -> ((s: String) => s.toBoolean),
-    StringToShort -> ((s: String) => s.toShort),
-    StringToFloat -> ((s: String) => s.toFloat)
-  )
-
-  private def throwIllegalDataTypeError(message: String) = throw new IllegalArgumentException()
-
-  def extractString(json: JValue): Option[String] = Option {
-    json match {
-      case JNull | JNothing => null
-      case JString(s) => s
-      case JInt(num) => num.toString
-      case JDouble(num) => num.toString
-      case JObject(s) => throw new IllegalArgumentException(s"Cannot convert JObject to String")
-    }
-  }
-
-  def extractValue(json: JValue, mappingContext: StraightMappingContext): Any = {
-    val canBeNull = mappingContext.isNull
-    val precision = mappingContext.precision
-    val desiredColumnName = mappingContext.desiredColumnName
-    val dataType = mappingContext.dataType
-
-    json match {
-      case JNothing | JNull =>
-        assert(canBeNull, s"Column ${mappingContext.desiredColumnName} cannot be null.")
-        None
-      case JString(s) if dataType == "varchar" => s
-    }
-  }
 
   /**
     * Traverses and extracts the value specified by the path context
@@ -100,8 +59,13 @@ trait Transformer {
   }
 
   def getValueFromStraight(json: JValue, mappingContext: StraightMappingContext): ColumnValue = {
-    val value = extractValue(traversePath(json, mappingContext.path), mappingContext)
-    ColumnValue(mappingContext.desiredColumnName, value)
+    val traversed = traversePath(json, mappingContext.path)
+    val value = extractData(traversed, mappingContext)
+    value match {
+      case None if !mappingContext.isNull =>
+        throw new IllegalArgumentException(s"Column ${mappingContext.desiredColumnName} cannot be null.")
+      case _ => ColumnValue(mappingContext.desiredColumnName, value)
+    }
   }
 
   /**
@@ -181,6 +145,8 @@ trait Transformer {
     */
   def transform(json: JValue, mapperContext: MapperContext): List[Table] = {
 
+    logger.info(s"Transforming ${mapperContext.tableName}")
+
     //table name
     val tableName = mapperContext.tableName
 
@@ -198,6 +164,6 @@ trait Transformer {
 
 }
 
-case class ColumnValue(name: String, value: Any)
+case class ColumnValue(name: String, value: Option[Any])
 
 case class Table(tableName: String, values: List[ColumnValue])

@@ -2,7 +2,7 @@ package com.github.deprosun.dataflattener.model
 
 import java.io.StringReader
 
-import com.github.deprosun.dataflattener.ThrowingErrorListener
+import com.github.deprosun.dataflattener.parser.ThrowingErrorListener
 import com.github.deprosun.dataflattener.parser.{FlattenerLexer, FlattenerParser}
 //import com.github.deprosun.dataflattener. model}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
@@ -20,7 +20,6 @@ object MapperContext {
   private def getParser(input: String): FlattenerParser = {
     val inputCharStream = CharStreams.fromReader(new StringReader(input))
     val tokenSource = new FlattenerLexer(inputCharStream)
-
 
 
     tokenSource.removeErrorListeners()

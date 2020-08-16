@@ -1,3 +1,4 @@
+import sbt._
 import Library._
 
 name := "DataFlattener"
@@ -10,7 +11,7 @@ resolvers ++= repositories
 
 libraryDependencies ++=
   scalaTestDep :+
-    antlrDep :+ json4s
+    antlr :+ json4s :+ slf4j :+ vault :+ vaultTest
 
 homepage := Some(url("https://github.com/deprosun/DataFlattener"))
 
