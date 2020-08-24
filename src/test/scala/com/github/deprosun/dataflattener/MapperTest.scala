@@ -1,6 +1,6 @@
 package com.github.deprosun.dataflattener
 
-import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, MapFunctionJsonPathContext, MapperContext, PathName, SimpleJsonPathContext, StraightMappingContext}
+import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, Filter, MapFunctionJsonPathContext, MapperContext, PathName, SimpleJsonPathContext, StraightMappingContext}
 import org.antlr.v4.runtime.misc.ParseCancellationException
 
 import scala.language.postfixOps
@@ -36,6 +36,7 @@ class MapperTest extends TestStyle {
         val expected = MapperContext(
           tableName = "dim_rules_result",
           fromField = None,
+          filter = None,
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
@@ -100,6 +101,7 @@ class MapperTest extends TestStyle {
         val expected = MapperContext(
           tableName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
+          filter = None,
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
@@ -144,7 +146,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult (
+          |TABLE dim_rules_result FROM rulesResult FILTER query = obama (
           |    MAPPING (
           |        suitabilityRuleId = ruleId                                VARCHAR (100)   NOT NULL
           |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
@@ -165,6 +167,7 @@ class MapperTest extends TestStyle {
         val expected = MapperContext(
           tableName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
+          filter = Some(Filter(SimpleJsonPathContext(List(PathName("query"))), SimpleJsonPathContext(List(PathName("obama"))))),
           mappings = List(
             StraightMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -244,6 +247,7 @@ class MapperTest extends TestStyle {
         val expected = MapperContext(
           tableName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
+          filter = None,
           mappings = List(
             StraightMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -281,6 +285,7 @@ class MapperTest extends TestStyle {
             MapperContext(
               tableName = "childTable",
               fromField = Some(SimpleJsonPathContext(List(PathName("someProperty")))),
+              filter = None,
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -400,6 +405,7 @@ class MapperTest extends TestStyle {
           MapperContext(
             tableName = "dim_rules_result",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
+            filter = None,
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
@@ -433,6 +439,7 @@ class MapperTest extends TestStyle {
           MapperContext(
             tableName = "anotherTable",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
+            filter = None,
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),

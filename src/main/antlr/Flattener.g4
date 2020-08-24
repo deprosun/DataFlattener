@@ -4,11 +4,11 @@ mappers:
     mapper*;
 
 mapper
-    :'TABLE' table_name ('FROM' fromField)? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    :'TABLE' table_name ('FROM' fromField)? ('FILTER' filter)? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 child_mapper
-    :'TABLE' table_name 'FROM' fromField '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    :'TABLE' table_name 'FROM' fromField ('FILTER' filter)? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 mapping
@@ -59,6 +59,14 @@ schema
 
 fromField
     :simple_json_path
+    ;
+
+filter
+    : (literal | json_path) '=' (literal | json_path)
+    ;
+
+literal
+    : ('literal(' | 'lit(') id ')'
     ;
 
 mappingAlias

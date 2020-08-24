@@ -2,262 +2,221 @@
 
 ![Scala Test](https://github.com/deprosun/DataFlattener/workflows/Scala%20Test/badge.svg?branch=master) ![Version](https://github.com/deprosun/DataFlattener/workflows/Bump%20version/badge.svg)
 
-This project provides the parser for files with `.mapper` extension.
+This project allows us to transform a JSON record into one or more records using a simple mapping configuration DLS called "mapper" file. This project provides the parser for files with `.mapper` extension.  Following is the data flow - given a source JSON and mapping configuration, *Data Flattener* produces a list of `Table` object records.
 
-## What is a Mapper file?
-Mapper is a DSL designed to be easily read, understood, written and parsable to communicate source to target mapping. Lets understand this through an example. 
+![readme](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuTBGqbJGrRLJK0hEBorAJbNm2lRtKmXAJSulIb52IFec5XIa5Yauv-UbPQOhSQ7n8MfS4aiI5Tno4ajAKlDIYu2Ai9Y8GoMQ04HLI69IJgg28Nvf8_pInlYbJN19wocWGVpc-2bnEQJcfG334m00 "")
 
-1.  We'll start with a JSON dataset (SOURCE) with a schema. 
-2.  We, then, write a source to target mapping in form of `.mapper` file to flatten the JSON to relational tables (TARGET).
-
-
-### Example Dataset: FoodData Central Dataset Schema
-For the example set, I wanted to select a somewhat complex structure (but of course, not too complex) to understand how to easily communicate the flattening effort - especially when one record is responsible for producing rows going into multiple tables. Following is the source schema we are going to deal with. The dataset is inspired from FoodData Central. Check them out, pretty cool!
-
+* `Table`: `Table` is a scala case class that holds `tableName` for name of the table and `rows` for list of `Row` objects.
+```scala
+case class Table(tableName: String, rows: List[Row])
 ```
-root
- |-- currentPage: long
- |-- foodSearchCriteria: struct
- |    |-- generalSearchInput: string
- |    |-- pageNumber: long
- |    |-- requireAllWords: boolean
- |-- foods: array
- |    |-- element: struct
- |    |    |-- additionalDescriptions: string
- |    |    |-- allHighlightFields: string
- |    |    |-- brandOwner: string
- |    |    |-- commonNames: string
- |    |    |-- dataType: string
- |    |    |-- description: string
- |    |    |-- fdcId: long
- |    |    |-- foodCode: string
- |    |    |-- gtinUpc: string
- |    |    |-- ingredients: string
- |    |    |-- ndbNumber: string
- |    |    |-- publishedDate: string
- |    |    |-- scientificName: string
- |    |    |-- score: double
- |-- totalHits: long
- |-- totalPages: long
+* `Row` : `Row` contains a list `Column`.
+```scala
+case class Row(columns: List[Column])
 ```
 
-This dataset is the response given by the FoodData Central api when I asked for all the food that matched my search criteria. So, when I asked for "baking powder" I get following response. `foodSearchCriteria.generalSearchInput` mentions just that - "baking powder". `foods` is the list of food items that matched my search criteria. Each food item has a FoodData Central database unique number in `fdcId` along with other food related information.
+* `Column` : `Column` contains the name of the column and value associated with it.
+```
+case class Column(name: String, value: Option[Any])
+```
 
-```json
+## Inspiration
+Before we aggregate a single record, we often times have to apply some transformation logic of following types:
+* normalize/clean, 
+* encrypt some field (PII or PHI security concerns), 
+* shrink the size of the record by only selecting fields required downstream, or
+* we need to "flatten" the JSON structure into relational tables so that they can be inserted into a database downstream.
+
+All of these transformations can be _communicated_ using some sort of language mechanism.
+
+## Example 1
+Create a FoodDetail table such `description` field is lower cased and rename the field name `fdcId` to `id`.
+
+```JSON
 {
-    "foodSearchCriteria": {
-        "generalSearchInput": "baking powder",
-        "pageNumber": 1,
-        "requireAllWords": false
-    },
-    "totalHits": 2,
-    "currentPage": 1,
-    "totalPages": 1,
-    "foods": [
-        {
-            "fdcId": 563346,
-            "description": "BAKING POWDER",
-            "dataType": "Branded",
-            "gtinUpc": "039978033925",
-            "publishedDate": "2019-04-01",
-            "brandOwner": "Bob's Red Mill Natural Foods, Inc.",
-            "ingredients": "SODIUM ACID PYROPHOSPHATE, SODIUM BICARBONATE, CORNSTARCH, AND MONOCALCIUM PHOSPHATE.",
-            "allHighlightFields": "",
-            "score": 863.32733
-        },
-        {
-            "fdcId": 592185,
-            "description": "BAKING POWDER",
-            "dataType": "Branded",
-            "gtinUpc": "07789045049",
-            "publishedDate": "2019-04-01",
-            "brandOwner": "Wegmans Food Markets, Inc.",
-            "ingredients": "CORN STARCH, SODIUM BICARBONATE, MONOCALCIUM PHOSPHATE.",
-            "allHighlightFields": "",
-            "score": 863.32733
-        }
-    ]
+    "fdcId": 563346,
+    "description": "BAKING POWDER"
 }
 ```
 
-## Source to Target Mapping using Mapper file
-Now that we have the dataset we want to decide how we want to map it to relational tables. That requires coming up with **reporting requirements**. 
-
-### Requirement 1: Food and Search Dimension
-Capture all the food search terms made by users in a dimensional table. Also, capture food items in a dimensional table. 
-
-```plantuml
-@startuml
-object SearchTerm {
-    id : UUID
-    searchTerm : VARCHAR (100)
-}
-
-object FoodItem {
-    id : Integer
-    foodDescription : VARCHAR (100)
-    dataType : VARCHAR (100)
-    gtinUpc : INTEGER
-    publishedDate : DATE
-    brandOwner : VARCHAR (500)
-}
-@enduml
-```
-
-| id                                   | searchTerm    |
-|--------------------------------------|---------------|
-| 1fa0ddee-ad3c-a426-347b-637cb3621442 | baking powder |
-            
-
-
-| id     | foodDescription | dataType | gtinUpc      | publishedDate | brandOwner                         |
-|--------|-----------------|----------|--------------|---------------|------------------------------------|
-| 563346 | BAKING POWDER   | Branded  | 039978033925 | 2019-04-01    | Bob's Red Mill Natural Foods, Inc. |
-| 592185 | BAKING POWDER   | Branded  | 07789045049  | 2019-04-01    | Wegmans Food Markets, Inc.         |
-
-#### Source-to-Target Mapping (.mapper)
-
-```
-TABLE SearchTerm (
-    MAPPING(
-        (id = to_uuid(foodSearchCriteria.generalSearchInput))    UUID            NOT NULL    PK
-        (searchTerm = foodSearchCriteria.generalSearchInput)     VARCHAR (100)   NOT NULL
-    )
-)
-
-TABLE FoodItem FROM foods (
-    MAPPING(
-        (id = fdcId)                     INT                NOT NULL    PK
-        (foodDescription = description)  VARCHAR (100)      NULL
-        (dataType = dataType)            VARCHAR (100)      NOT NULL
-        (gtinUpc = gtinUpc)              INTEGER            NOT NULL
-        (publishedDate = publishedDate)  DATE               NULL
-        (brandOwner = brandOwner)        VARCHAR (500)      NOT NULL
+```scala
+Table FoodDetail (
+    Mapping (
+        fdcId                 = id             INT          NOT NULL             
+        lower(description)    = description    VARCHAR      NULL
     )
 )
 ```
 
-##### Explaination
-```
-TABLE SearchTerm (
-    MAPPING(
-        (id = to_uuid(foodSearchCriteria.generalSearchInput))            UUID            NOT NULL    PK
-        (searchTerm = foodSearchCriteria.generalSearchInput)             VARCHAR (100)   NOT NULL
-    )
-)
-```
+In the above configuration language we have defined the table called `FoodDetail` which contains two columns:
+1. `id` of type `INT`, which gets the value from `fdcId` field in JSON. This field cannot be `null`.
+2. `description` of type `VARCHAR` which gets the value from applying a function `lower` on `description` field in JSON. This field can be `null`.
 
-Here we are defining source to target mapping configuration for table `SearchTerm`. All the mappings are defined inside `MAPPING` clause surrounded by open/close parenthesis. Let's look at the first mapping.
+## Example 1 Output
 
-```to_uuid(foodSearchCriteria.generalSearchInput)      = id            UUID            NOT NULL    PK```
+![readme](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuTBGqbJGrRLJK0hEBorAJbNm2lRtKmXAJSulIb52IFec5XIa5Yauv-UbPQOhSQ7n8MfS4aiI5Tno4ajAKlDIYu2Ai9Y8GoMQ04HLI69IJgg2Mtv-YajgIM9cZXANGsfU2j3D0000)
 
-Here we are saying:
-> _Convert the value `foodSearchCriteria.generalSearchInput` to a guid using the function `to_uuid` because column data type `UUID`. The result of conversion will go as value for `id` column in `SearchTerm` table. Also this value cannot be NULL denoted by `NOT NULL` clause as it is a primary key column denoted by `PK`._
+## Example 2
+	
+I'd like to create two tables - one table called `Donut` and a child table called `Batter`. `Donut` table will have two columns `id` and `donutName` where the value is retrieved from `donutUniqueId` and `name` fields in the JSON, respectively.  The child table `Batter` will be created from `batters.batter` array field in the JSON. `Batter` table will contain columns `id`, and `batterType` where values come from each element in `batters.batter`.  We also want to add `donutId` so that the table has a foreign key referencing the parent id.  Therefore, in this case the value of `donutId` should be `0001`.
 
-Now let look at the second mapping
-
-```(searchTerm = foodSearchCriteria.generalSearchInput)    VARCHAR (100)   NOT NULL```
-
-Here we are saying:
->_Use the value `foodSearchCriteria.generalSearchInput` as a VARCHAR (100) for the column `searchTerm` in table `SearchTerm`. Also this value cannot be NULL denoted by `NOT NULL` clause._
-
-Now lets look at the mapping configuration for `FoodItem`.
-
-```
-TABLE FoodItem FROM foods (
-    MAPPING(
-        (id = fdcId)                              INT                NOT NULL    PK
-        (foodDescription = description)           VARCHAR (100)      NULL
-        (dataType = dataType)                     VARCHAR (100)      NOT NULL
-        (gtinUpc = gtinUpc)                       INTEGER            NOT NULL
-        (publishedDate = publishedDate)           DATE               NULL
-        (brandOwner = brandOwner)                 VARCHAR (500)      NOT NULL
-    )
-)
-```
-
-Everything in the mapping section follows the same logic as described above. The only difference is `FROM food` part. `FROM` section of the config denotes what **array** type property of the JSON yields the rows for this table. In this case it is the property `foods` in the json dataset. Mappings defined communicate traversal logic with respect to the schema of the each element in the `foods` collection. In other words, the value of `id` column is demonstrated by `fdcId` - instead of `foods.fdcId`.
-
-### Requirement 2: Search-Result Log Book
-Capture the response in the relational model where a dimensional table holding the search and a child table that contains all the food items received for that response.
-
-```plantuml
-@startuml
-object SearchTerm {
-    id : UUID
-    searchTerm : VARCHAR (100)
-    loadTime: Timestamp
+```JSON
+{
+	"donutUniqueId": "0001",
+	"type": "donut",
+	"name": "Cake",
+	"ppu": 0.55,
+	"batters": {
+			"batter": [
+					{ "id": "1001", "type": "Regular" },
+					{ "id": "1002", "type": "Chocolate" },
+					{ "id": "1003", "type": "Blueberry" },
+					{ "id": "1004", "type": "Devil's Food" }
+				]
+		},
+	"topping":
+		[
+			{ "id": "5001", "type": "None" },
+			{ "id": "5002", "type": "Glazed" },
+			{ "id": "5005", "type": "Sugar" },
+			{ "id": "5007", "type": "Powdered Sugar" },
+			{ "id": "5006", "type": "Chocolate with Sprinkles" },
+			{ "id": "5003", "type": "Chocolate" },
+			{ "id": "5004", "type": "Maple" }
+		]
 }
-
-object FoodItem {
-    id : Integer
-    searchId: UUID
-    foodDescription : VARCHAR (100)
-    dataType : VARCHAR (100)
-    gtinUpc : INTEGER
-    publishedDate : DATE
-    brandOwner : VARCHAR (500)
-}
-
-SearchTerm --{ FoodItem
-@enduml
 ```
 
-| id                                   | searchTerm    | loadTime                     |
-|--------------------------------------|---------------|------------------------------|
-| 1fa0ddee-ad3c-a426-347b-637cb3621442 | baking powder | Sun Feb  2 12:45:39 EST 2020 |
-
-
-
-| foodId | searchId                             | foodDescription | dataType | gtinUpc      | publishedDate | brandOwner                         |
-|--------|--------------------------------------|-----------------|----------|--------------|---------------|------------------------------------|
-| 563346 | 1fa0ddee-ad3c-a426-347b-637cb3621442 | BAKING POWDER   | Branded  | 039978033925 | 2019-04-01    | Bob's Red Mill Natural Foods, Inc. |
-| 592185 | 1fa0ddee-ad3c-a426-347b-637cb3621442 | BAKING POWDER   | Branded  | 07789045049  | 2019-04-01    | Wegmans Food Markets, Inc.         |
-
-#### Source-to-Target Mapping (.mapper)
-
-```
-TABLE SearchTerm (
-    MAPPING(
-        (id = to_uuid(foodSearchCriteria.generalSearchInput))       UUID            NOT NULL    PK
-        (searchTerm = foodSearchCriteria.generalSearchInput)        VARCHAR (100)   NOT NULL
-        (loadTime = current_timestamp())                            TIMESTAMP       NOT NULL
+```scala
+TABLE Donut (
+    
+    MAPPING (
+        donutUniqueId      = id         VARCHAR    NOT NULL  PK     
+        name               = donutName  VARCHAR    NOT NULL
     )
 
-    TABLE FoodItem FROM foods (
-        MAPPING(
-            (id = fdcId)                      INT                NOT NULL    PK
-            (searchId = foreign_key())        UUID               NOT NULL    FK
-            (foodDescription = description)   VARCHAR (100)      NULL
-            (dataType = dataType)             VARCHAR (100)      NOT NULL
-            (gtinUpc = gtinUpc)               INTEGER            NOT NULL
-            (publishedDate = publishedDate)   DATE               NULL
-            (brandOwner = brandOwner)         VARCHAR (500)      NOT NULL
-        )
-    )
-)
-```
-
-##### Explaination
-`FoodItem` mapping configuration is embedded inside the `SearchTerm` mapping configuration to define parent-child relationship. `FROM` field is a JSON key of type array which gets used to create the content for the child table. In this case, child table `FoodItem` is made from array field `foods` from root.
-
-```
-TABLE SearchTerm (
-    MAPPING(
-        . . .
-    )
-
-    TABLE FoodItem FROM foods (
+    TABLE Batter FROM batters.batter ( 
         MAPPING (
-            . . .
+            donutUniqueId     = id           VARCHAR    NOT NULL  PK
+                    donutId   = donutId      VARCHAR    NOT NULL  FK
+                    type      = batterType   VARCHAR    NOT NULL
         )
     )
 )
 ```
 
----
-**NOTE**
+```scala
+/* 
+--Parent/Child Table--
 
-Notice the mappings for child table `FoodItems` do **not** start with `foods` prefix, i.e `foods.fdcId` vs `fdcId`. Since `food` is already mentioned in the FROM field clause - its implied. We simply demonstrate our mapping effort from the element level itself.
+you can create child tables simply by adding another TABLE inside the parent TABLE clause by telling which field you want to create rows FROM.  And when we create a child table, it is mandatory that you specify a PK (primary key) in the parent table and FK in the child table.  This way DataFlattener realizes that it needs to copy the value of `donutUniqueId` down to all the rows in child table so that it can be used as foreign key.
 
----
+--Why is it not "batters.batter.id"?--
+
+when we say "FROM batters.batter", in our mapping we use the array's element's JSON schema as the root for each row.  In other words, that is why you don't see `batters.batter.id` - simply `id` will result in access the value.
+*/
+```
+
+## Example 2 Output
+
+![readme-1](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuTBGqbJGrRLJK0hEBorAJbNm2lRtKmXAJSulIb52IFec5XIa5Yauv-UbPQOhSQ7n8MfS4aiI5Tno4ajAKlDIYu2Ai9Y8GoMQ04HLI69IJgg2ItvUQGb-9KuWGQ0n3gbvAK0l0G00)
+
+
+In this case, `Donut` table will yield 1 row with `id` = "0001".  Table `Batter` will yield 4 rows referring to "0001" in `donutId` column
+
+```log
+
+//Donut Table
+| id   | donutName |
+|------|-----------|
+| 0001 | Cake      |
+
+
+//Batter Table
+| id   | donutId | batterType   |
+|------|---------|--------------|
+| 1001 | 0001    | Regular      |
+| 1002 | 0001    | Chocolate    |
+| 1003 | 0001    | Blueberry    |
+| 1004 | 0001    | Devil's Food |
+```
+
+![readme-2](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuSfFoafDBb5moSyhBL6evb80WimK1Ik5CCSWPm_78B102aZIBp4t5KcybWkcrIcnf2Ir2AzUpnHKmIImbf3A0ZGJ8QxGrQs66ihba9gN0dGb0000)
+
+## Example 3
+I'd like to create a Table `Topping` from the `topping` field.  Moreover, I'd like to create a "flat" topping and donut info where each row contains a unique topping along side the name of the donut that topping is used on.  The table should end up looking like:
+
+![readme-3](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuSfFoafDBb48oIyeoCnBLwZcKW22p1G5AuKmno1d3ySW1Gr30mDDi71UOcugLecK_BpI4Z-WB5oIgvRB8JKl1MW30000)
+
+```log
+//Topping Table
+| id   | name                     | donutName |
+|------|--------------------------|-----------|
+| 5001 | None                     | Cake      |
+| 5002 | Glazed                   | Cake      |
+| 5005 | Sugar                    | Cake      |
+| 5007 | Powdered Sugar           | Cake      |
+| 5006 | Chocolate with Sprinkles | Cake      |
+| 5003 | Chocolate                | Cake      |
+| 5004 | Maple                    | Cake      |
+```
+
+```JSON
+{
+	"donutUniqueId": "0001",
+	"type": "donut",
+	"name": "Cake",
+	"ppu": 0.55,
+	"batters": {
+			"batter": [
+					{ "id": "1001", "type": "Regular" },
+					{ "id": "1002", "type": "Chocolate" },
+					{ "id": "1003", "type": "Blueberry" },
+					{ "id": "1004", "type": "Devil's Food" }
+				]
+		},
+	"topping": [
+			{ "id": "5001", "type": "None" },
+			{ "id": "5002", "type": "Glazed" },
+			{ "id": "5005", "type": "Sugar" },
+			{ "id": "5007", "type": "Powdered Sugar" },
+			{ "id": "5006", "type": "Chocolate with Sprinkles" },
+			{ "id": "5003", "type": "Chocolate" },
+			{ "id": "5004", "type": "Maple" }
+		]
+}
+```
+
+```scala
+TABLE Topping (
+    MAPPING (
+        type              = donutName           VARCHAR   NOT NULL
+        explode(topping) (
+            id              = id           VARCHAR (100)   NOT NULL
+            type            = toppingName  VARCHAR (101)   NOT NULL
+        )
+    )
+)
+```
+
+## Example 3 Output
+
+![readme-4](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuTBGqbJGrRLJK0hEBorAJbNm2lRtKmXAJSulIb52IFec5XIa5Yauv-UbPQOhSQ7n8MfS4aiI5Tno4ajAKlDIYu2Ai9Y8GoMQ04HLI69IJgf2I7v1GMOUq4w7rBmKe8C1 "readme-4")
+
+Let's look at `explode`. So far we have only seen 1 row getting created in the above example for the parent table.  Sometimes,  there are requirements, like above, where 1 row actually yield multiple.  `explode` tells DataFlattener exactly just that.  It says:
+> _the total number of rows yielded in Topping table will be the number of rows in `topping` fields._
+
+Any mappings defined outside of `explode` clause, simply "get added" to each row came by "exploding" the `topping` field.  That is why you see "Cake" multiple times in the final output. 
+
+```log
+//Topping Table
+| id   | name                     | donutName |
+|------|--------------------------|-----------|
+| 5001 | None                     | Cake      |
+| 5002 | Glazed                   | Cake      |
+| 5005 | Sugar                    | Cake      |
+| 5007 | Powdered Sugar           | Cake      |
+| 5006 | Chocolate with Sprinkles | Cake      |
+| 5003 | Chocolate                | Cake      |
+| 5004 | Maple                    | Cake      |
+```

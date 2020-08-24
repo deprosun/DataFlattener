@@ -215,11 +215,17 @@ object MapperContext {
       getSimpleJsonPathContext(x.simple_json_path())
     }
 
+    val filter: Option[Filter] = Option(context.filter()) map { condition =>
+      val path1 = getJsonPathContext(condition.json_path(0))
+      val path2 = getJsonPathContext(condition.json_path(1))
+      Filter(path1, path2)
+    }
+
     val mappings = context.mapping() map getMappingContext toList
 
     val children = context.child_mapper() map getChildMapperContext toList
 
-    MapperContext(tableName, fromField, mappings, children)
+    MapperContext(tableName, fromField, filter, mappings, children)
   }
 
   /**
@@ -232,11 +238,17 @@ object MapperContext {
       getSimpleJsonPathContext(x.simple_json_path())
     }
 
+    val filter: Option[Filter] = Option(context.filter()) map { condition =>
+      val path1 = getJsonPathContext(condition.json_path(0))
+      val path2 = getJsonPathContext(condition.json_path(1))
+      Filter(path1, path2)
+    }
+
     val mappings = context.mapping() map getMappingContext toList
 
     val children = context.child_mapper() map getChildMapperContext toList
 
-    MapperContext(tableName, fromField, mappings, children)
+    MapperContext(tableName, fromField, filter, mappings, children)
   }
 
   def toJSON(mapperContext: MapperContext): String = {
@@ -254,6 +266,7 @@ object MapperContext {
 
 case class MapperContext(tableName: String,
                          fromField: Option[JsonPathContext],
+                         filter: Option[Filter],
                          mappings: List[MappingContext],
                          children: List[MapperContext])
 
@@ -279,6 +292,9 @@ case class MapFunctionJsonPathContext(funcName: String, functionParams: List[Jso
 case class SimpleJsonPathContext(path: List[PathName]) extends JsonPathContext
 
 case class ConcatJsonPathContext(path: List[PathName], separator: String) extends JsonPathContext
+
+
+case class Filter(path: JsonPathContext, path2: JsonPathContext)
 
 
 trait AttributeContext
