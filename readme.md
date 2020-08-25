@@ -21,7 +21,7 @@ case class Row(columns: List[Column])
 case class Column(mappingContext: StraightMappingContext, value: JValue])
 ```
 
-## Inspiration
+## Motivation
 Before we aggregate a single record, we often times have to apply some transformation logic of following types:
 * normalize/clean, 
 * encrypt some field (PII or PHI security concerns), 
@@ -30,8 +30,13 @@ Before we aggregate a single record, we often times have to apply some transform
 
 All of these transformations can be _communicated_ using some sort of language mechanism.
 
+## Installation
+```scala
+libraryDependencies += "com.github.deprosun" % "dataflattener_2.11" % "7.0"
+```
+
 ## Example 1
-Create a FoodDetail table such `description` field is lower cased and rename the field name `fdcId` to `id`.
+Create a FoodDetail table such that `description` field is lowercase and rename the field name `fdcId` to `id`.
 
 ```JSON
 {
@@ -194,7 +199,7 @@ TABLE Topping (
         type              = donutName           VARCHAR   NOT NULL
         explode(topping) (
             id              = id           VARCHAR (100)   NOT NULL
-            type            = toppingName  VARCHAR (101)   NOT NULL
+            type            = toppingName  VARCHAR (100)   NOT NULL
         )
     )
 )
