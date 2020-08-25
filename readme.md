@@ -115,11 +115,20 @@ TABLE Donut (
 /* 
 --Parent/Child Table--
 
-you can create child tables simply by adding another TABLE inside the parent TABLE clause by telling which field you want to create rows FROM.  Sometimes we need to add extra information (or rather need extra values) needed to generate child rows.  We depict such language with `WITH (donutUniqueId = donutId)` where `donutUniqueId` is a field key that evaluate the value of it in the parent JSON and `donutId` is a variable name holding the value for it.  This value is then accessed using the variable you defined, here variable is `donutId`.  As we can the second mapping using `donutId` as a mapping rule for column name `donutParentId`. 
+you can create child tables simply by adding another TABLE inside the parent TABLE clause 
+by telling which field you want to create rows FROM.  Sometimes we need to add extra 
+information (or rather need extra values) needed to generate child rows.  We depict such 
+language with `WITH (donutUniqueId = donutId)` where `donutUniqueId` is a field key that 
+evaluate the value of it in the parent JSON and `donutId` is a variable name holding the 
+value for it.  This value is then accessed using the variable you defined, here variable 
+is `donutId`.  As we can the second mapping using `donutId` as a mapping rule for column 
+name `donutParentId`. 
 
 --Why is it not "batters.batter.id"?--
 
-when we say "FROM batters.batter", in our mapping we use the array's element's JSON schema as the root for each row.  In other words, that is why you don't see `batters.batter.id` - simply `id` will result in access the value.
+when we say "FROM batters.batter", in our mapping we use the array's element's JSON schema 
+as the root for each row.  In other words, that is why you don't see `batters.batter.id` - 
+simply `id` will result in access the value.
 */
 ```
 
