@@ -3,7 +3,7 @@ import Library._
 
 name := "DataFlattener"
 
-version := "6.0"
+version := "7.0"
 
 scalaVersion := "2.11.11"
 
@@ -11,7 +11,7 @@ resolvers ++= repositories
 
 libraryDependencies ++=
   scalaTestDep :+
-    antlr :+ json4s :+ slf4j :+ vault :+ vaultTest
+    antlr :+ json4s :+ slf4j :+ vaultTest
 
 homepage := Some(url("https://github.com/deprosun/DataFlattener"))
 

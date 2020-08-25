@@ -2,13 +2,12 @@ package com.github.deprosun.dataflattener.model
 
 import java.io.StringReader
 
-import com.github.deprosun.dataflattener.parser.ThrowingErrorListener
-import com.github.deprosun.dataflattener.parser.{FlattenerLexer, FlattenerParser}
+import com.github.deprosun.dataflattener.parser.{FlattenerLexer, FlattenerParser, ThrowingErrorListener}
 //import com.github.deprosun.dataflattener. model}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 import org.json4s._
 import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{read, write}
+import org.json4s.native.Serialization.write
 
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
@@ -221,11 +220,19 @@ object MapperContext {
       Filter(path1, path2)
     }
 
+    val copiedKeys = Option(context.`with`()) map { w =>
+      w.mappingAlias() map { x =>
+        val alias = x.column_name().id().getText
+
+        alias -> getJsonPathContext(x.json_path())
+      } toMap
+    } getOrElse Map()
+
     val mappings = context.mapping() map getMappingContext toList
 
     val children = context.child_mapper() map getChildMapperContext toList
 
-    MapperContext(tableName, fromField, filter, mappings, children)
+    MapperContext(tableName, fromField, filter, copiedKeys, mappings, children)
   }
 
   /**
@@ -244,11 +251,19 @@ object MapperContext {
       Filter(path1, path2)
     }
 
+    val copiedKeys = Option(context.`with`()) map { w =>
+      w.mappingAlias() map { x =>
+        val alias = x.column_name().id().getText
+
+        alias -> getJsonPathContext(x.json_path())
+      } toMap
+    } getOrElse Map()
+
     val mappings = context.mapping() map getMappingContext toList
 
     val children = context.child_mapper() map getChildMapperContext toList
 
-    MapperContext(tableName, fromField, filter, mappings, children)
+    MapperContext(tableName, fromField, filter, copiedKeys, mappings, children)
   }
 
   def toJSON(mapperContext: MapperContext): String = {
@@ -267,6 +282,7 @@ object MapperContext {
 case class MapperContext(tableName: String,
                          fromField: Option[JsonPathContext],
                          filter: Option[Filter],
+                         copiedKeys: Map[String, JsonPathContext],
                          mappings: List[MappingContext],
                          children: List[MapperContext])
 

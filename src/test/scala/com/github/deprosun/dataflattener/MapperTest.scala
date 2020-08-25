@@ -1,10 +1,10 @@
 package com.github.deprosun.dataflattener
 
-import com.github.deprosun.dataflattener.model.{ExplodeMappingContext, Filter, MapFunctionJsonPathContext, MapperContext, PathName, SimpleJsonPathContext, StraightMappingContext}
+import com.github.deprosun.dataflattener.model._
 import org.antlr.v4.runtime.misc.ParseCancellationException
+import org.json4s.native.JsonMethods._
 
 import scala.language.postfixOps
-import org.json4s.native.JsonMethods._
 
 class MapperTest extends TestStyle {
 
@@ -37,6 +37,7 @@ class MapperTest extends TestStyle {
           tableName = "dim_rules_result",
           fromField = None,
           filter = None,
+          copiedKeys = Map(),
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
@@ -102,6 +103,7 @@ class MapperTest extends TestStyle {
           tableName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
           filter = None,
+          copiedKeys = Map(),
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
@@ -168,6 +170,7 @@ class MapperTest extends TestStyle {
           tableName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
           filter = Some(Filter(SimpleJsonPathContext(List(PathName("query"))), SimpleJsonPathContext(List(PathName("obama"))))),
+          copiedKeys = Map(),
           mappings = List(
             StraightMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -248,6 +251,7 @@ class MapperTest extends TestStyle {
           tableName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
           filter = None,
+          copiedKeys = Map(),
           mappings = List(
             StraightMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -286,6 +290,7 @@ class MapperTest extends TestStyle {
               tableName = "childTable",
               fromField = Some(SimpleJsonPathContext(List(PathName("someProperty")))),
               filter = None,
+              copiedKeys = Map(),
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -406,6 +411,7 @@ class MapperTest extends TestStyle {
             tableName = "dim_rules_result",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
             filter = None,
+            copiedKeys = Map(),
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
@@ -440,6 +446,74 @@ class MapperTest extends TestStyle {
             tableName = "anotherTable",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
             filter = None,
+            copiedKeys = Map(),
+            mappings = List(
+              ExplodeMappingContext(
+                path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
+                copiedKeys = Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                mappingContext = List(
+                  StraightMappingContext(
+                    path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
+                    desiredColumnName = "ruleId", dataType = "VARCHAR", precision = List("100"),
+                    isNull = false, attributes = Nil
+                  ),
+                  StraightMappingContext(
+                    path = SimpleJsonPathContext(List(PathName("ruleResultValue"))),
+                    desiredColumnName = "ruleResult", dataType = "VARCHAR", precision = List("101"),
+                    isNull = false, attributes = Nil
+                  ),
+                  StraightMappingContext(
+                    path = MapFunctionJsonPathContext(
+                      funcName = "TO_UUID",
+                      functionParams = List(SimpleJsonPathContext(List(PathName("gateResultValue"))))
+                    ),
+                    desiredColumnName = "gateResult", dataType = "VARCHAR", precision = List("105"),
+                    isNull = false, attributes = Nil
+                  )
+                )
+              )
+            ),
+            children = Nil
+          )
+        )
+
+        assert(actual == expected)
+
+      }
+    }
+
+    describe("with values being projected from outside the table should be parseable") {
+
+      val config =
+
+        """
+          |
+          |TABLE dim_rules_result FROM rulesResult WITH (func(some) = someValue) (
+          |    MAPPING (
+          |        explode(suitabilityRuleResults) WITH (gateResultValue = gateResultValue, gateTypeDescription = gateTypeDescription) (
+          |           suitabilityRuleId        = ruleId                VARCHAR (100)   NOT NULL
+          |           ruleResultValue          = ruleResult           VARCHAR (101)   NOT NULL
+          |           TO_UUID(gateResultValue) = gateResult            VARCHAR (105)   NOT NULL
+          |        )
+          |    )
+          |)
+        """.stripMargin
+
+      it("should be parsable") {
+
+        val actual = MapperContext.getMappers(config)
+
+        val expected = List(
+          MapperContext(
+            tableName = "dim_rules_result",
+            fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
+            filter = None,
+            copiedKeys = Map("someValue" -> MapFunctionJsonPathContext(
+              funcName = "func",
+              functionParams = List(SimpleJsonPathContext(List(PathName("some"))))
+            )),
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),

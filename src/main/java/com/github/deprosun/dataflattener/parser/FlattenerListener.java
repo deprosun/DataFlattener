@@ -1,4 +1,4 @@
-// Generated from /Users/kgupta/projects/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
+// Generated from /Users/mm10444/Projects/streaming-platform/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
 package com.github.deprosun.dataflattener.parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -167,6 +167,16 @@ public interface FlattenerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFilter(FlattenerParser.FilterContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteral(FlattenerParser.LiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteral(FlattenerParser.LiteralContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#mappingAlias}.
 	 * @param ctx the parse tree

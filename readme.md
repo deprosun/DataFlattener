@@ -89,19 +89,19 @@ I'd like to create two tables - one table called `Donut` and a child table calle
 
 ```scala
 TABLE Donut (
-    
-    MAPPING (
-        donutUniqueId      = id         VARCHAR    NOT NULL  PK     
-        name               = donutName  VARCHAR    NOT NULL
-    )
 
-    TABLE Batter FROM batters.batter ( 
-        MAPPING (
-            donutUniqueId     = id           VARCHAR    NOT NULL  PK
-                    donutId   = donutId      VARCHAR    NOT NULL  FK
-                    type      = batterType   VARCHAR    NOT NULL
-        )
-    )
+	MAPPING (
+		donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
+		name               = donutName  VARCHAR    NOT NULL
+	)
+
+	TABLE Batter FROM batters.batter WITH (donutUniqueId = donutId) (
+		MAPPING (
+					id        = batterUID    		VARCHAR    NOT NULL  PK
+					donutId   = donutParentId       VARCHAR    NOT NULL  FK
+					type      = batterType   		VARCHAR    NOT NULL
+		)
+	)
 )
 ```
 
@@ -109,7 +109,7 @@ TABLE Donut (
 /* 
 --Parent/Child Table--
 
-you can create child tables simply by adding another TABLE inside the parent TABLE clause by telling which field you want to create rows FROM.  And when we create a child table, it is mandatory that you specify a PK (primary key) in the parent table and FK in the child table.  This way DataFlattener realizes that it needs to copy the value of `donutUniqueId` down to all the rows in child table so that it can be used as foreign key.
+you can create child tables simply by adding another TABLE inside the parent TABLE clause by telling which field you want to create rows FROM.  Sometimes we need to add extra information (or rather need extra values) needed to generate child rows.  We depict such language with `WITH (donutUniqueId = donutId)` where `donutUniqueId` is a field key that evaluate the value of it in the parent JSON and `donutId` is a variable name holding the value for it.  This value is then accessed using the variable you defined, here variable is `donutId`.  As we can the second mapping using `donutId` as a mapping rule for column name `donutParentId`. 
 
 --Why is it not "batters.batter.id"?--
 
@@ -219,4 +219,177 @@ Any mappings defined outside of `explode` clause, simply "get added" to each row
 | 5006 | Chocolate with Sprinkles | Cake      |
 | 5003 | Chocolate                | Cake      |
 | 5004 | Maple                    | Cake      |
+```
+
+## Let's try it out!
+There is nothing better than the actual demo to learn how DataFlattener behaves in the actual environment.  Since this is JVM based library, you can add the code dependency based on your language from [maven](https://mvnrepository.com/artifact/com.github.deprosun/dataflattener_2.11/). Use version `6.0`.  DataFlattener is leveraging Scala as the language so we will perform a demo using `sbt` REPL - specifically, `sbt console`.  If you do not want to use SBT, you can simply write this piece of code in a test!
+
+1. Go ahead and start up a `sbt shell` from the project root directory.
+
+```scala
+$ sbt console
+scala> 
+```
+
+2. Let's create our source JSON from above.  Imports some stuff and create your sample json
+
+```scala
+import com.github.deprosun.dataflattener.Transformer
+import com.github.deprosun.dataflattener.model.MapperContext
+import org.json4s
+import org.json4s.JValue
+import org.json4s.JsonAST.{JNothing, JNull, JString}
+import org.json4s.native.JsonMethods._
+import org.slf4j.{Logger, LoggerFactory}
+
+val sourceJSON: String =
+  """{
+    	"donutUniqueId": "0001",
+    	"type": "donut",
+    	"name": "Cake",
+    	"ppu": 0.55,
+    	"batters": {
+    			"batter": [
+    					{ "id": "1001", "type": "Regular" },
+    					{ "id": "1002", "type": "Chocolate" },
+    					{ "id": "1003", "type": "Blueberry" },
+    					{ "id": "1004", "type": "Devil's Food" }
+    				]
+    		},
+    	"topping":
+    		[
+    			{ "id": "5001", "type": "None" },
+    			{ "id": "5002", "type": "Glazed" },
+    			{ "id": "5005", "type": "Sugar" },
+    			{ "id": "5007", "type": "Powdered Sugar" },
+    			{ "id": "5006", "type": "Chocolate with Sprinkles" },
+    			{ "id": "5003", "type": "Chocolate" },
+    			{ "id": "5004", "type": "Maple" }
+    		]
+    }""".stripMargin
+```
+
+3. We will be performing Example 2.  Lets create our mapper config:
+```scala
+val mapperConfig =
+  """
+    TABLE Donut (
+    
+        MAPPING (
+            donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
+            name               = donutName  VARCHAR    NOT NULL
+        )
+    
+        TABLE Batter FROM batters.batter (
+            MAPPING (
+                		id        = batterUID    VARCHAR    NOT NULL  PK
+                        donutId   = donutId      VARCHAR    NOT NULL  FK
+                        type      = batterType   VARCHAR    NOT NULL
+            )
+        )
+    )
+  """.stripMargin
+```
+
+4. Since this project also provides a function to read the `mapper` configuration, let's use it. import `import com.github.deprosun.dataflattener.model.MapperContext`.  Then create a mapper object using `mapperConfig`.
+
+```scala
+val mappers: List[MapperContext] = MapperContext.getMappers(mapperConfig) //get mapper objects that holds the above configuration information
+```
+
+5. We use [Json4s](https://github.com/json4s/json4s) for parsing JSON string into an object called `JValue` from Json4s for parsing.  Let's create `JValue` object from our source JSON.
+
+```scala
+val record: JValue = parse(sourceJSON)
+```
+
+6. When we define a mapper we also define a set of "business" rules and function that are sometimes referred to as UDF in sql world. Lets defined (or rather implements) these rules so that transformation only adheres only _businesse's_ definition of transformation.  For now, please ignore the variables: `logger`, `toLowerCase`, and `udfMap`.  We will go over them later.  Simply copy and paste the following and create your transformer:
+
+```scala
+import com.github.deprosun.dataflattener.Transformer
+import org.slf4j.{Logger, LoggerFactory}
+
+val transformer: Transformer = new Transformer {
+  override val logger: Logger = LoggerFactory.getLogger("demo")
+
+  //convert a string to lowercase
+  def toLowerCase(json: List[JValue]): JValue = {
+    json match {
+      case (JNothing | JNull) :: Nil => JNothing //if the value as null, then just resort to null
+      case JString(x) :: Nil => JString(x.toLowerCase) //perform lowercase function
+      case (_: JValue) :: xs =>
+        throw new RuntimeException("You cannot supply more than 1 argument to function toLowerCase")
+
+    }
+  }
+
+  //a set of internal business modification value function
+  override val udfMap: Map[String, MapFunc] = Map(
+    "toLowerCase" -> toLowerCase
+  )
+}
+```
+
+7. Let run it by executing function `transformer.transform`.  `mapper` is a list of `MapperContext`.
+
+```
+val tranformed = mappers map { mapper =>
+  transformer.transform(record, mapper)
+}
+```
+
+8. Oops! We got an error.
+
+```scala
+java.lang.IllegalArgumentException: Column donutId cannot be null.
+  at com.github.deprosun.dataflattener.Transformer$class.getValueFromStraight(Transformer.scala:67)
+  at $anon$1.getValueFromStraight(<console>:34)
+```
+
+9. Something went wrong. Hmm, seems like we we mentioned `donutId` as "not null". Also, it is defined to be `FK`.  As per defintion, `donutId` is coming `donutUniqueId` in the mapper configuration.  But if you look at the source json the schema of `batters.batter` does not contain `donutUniqueId` field.  Since the value of this column comes from the parent primary key column, we need to somehow "push" the value down to child table `Batter`.  This is where we use `WITH (x.y = someAlias)`. 
+
+10. Lets look at the new mapper.  Then lets reload it to the same `mapper` object.
+
+```scala
+val mapperConfig =
+  """
+    TABLE Donut (
+		
+		MAPPING (
+			donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
+			name               = donutName  VARCHAR    NOT NULL
+		)
+
+		TABLE Batter FROM batters.batter WITH (donutUniqueId = donutId) (
+			MAPPING (
+				id        = batterUID    	VARCHAR    NOT NULL  PK
+				donutId   = donutParentId  	VARCHAR    NOT NULL  FK
+				type      = batterType   	VARCHAR    NOT NULL
+			)
+		)
+	)
+  """.stripMargin
+
+val mapper: List[MapperContext] = MapperContext.getMappers(mapperConfig)
+```
+
+11. Lets run the code again
+
+```scala
+// initiate transformation for each mapper/table
+mappers foreach { x =>
+	//get all the transformed tables
+	val tables = transformer.transform(json, x)
+
+	//print each table in json format
+	tables foreach { table =>
+		println(table.toJsonString)
+	}
+}
+```
+
+12. Result!  Each line shows you a json representation of the table.
+```scala
+{"Donut":[{"donutUID":"0001","donutName":"Cake"}]}
+{"Batter":[{"batterUID":"1001","donutParentId":"0001","batterType":"Regular"},{"batterUID":"1002","donutParentId":"0001","batterType":"Chocolate"},{"batterUID":"1003","donutParentId":"0001","batterType":"Blueberry"},{"batterUID":"1004","donutParentId":"0001","batterType":"Devil's Food"}]}
 ```
