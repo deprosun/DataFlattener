@@ -4,11 +4,11 @@ mappers:
     mapper*;
 
 mapper
-    :'TABLE' table_name ('FROM' fromField)? ('FILTER' filter)? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    :'TABLE' table_name ('FROM' fromField)? ('FILTER' filter)? with? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 child_mapper
-    :'TABLE' table_name 'FROM' fromField ('FILTER' filter)? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    :'TABLE' table_name 'FROM' fromField ('FILTER' filter)? with? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 mapping

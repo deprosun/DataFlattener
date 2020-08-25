@@ -1,6 +1,9 @@
 package com.github.deprosun.dataflattener.parser;
 
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 import java.util.Collections;
 import java.util.List;

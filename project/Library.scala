@@ -13,8 +13,6 @@ object Library {
 
   val json4s = "org.json4s" %% "json4s-native" % json4sNativeVersion
 
-  val vault = "com.bettercloud" % "vault-java-driver" % "5.1.0"
-
   val vaultTest = "com.github.golovnin" % "embedded-vault" % "0.11.1.0" % Test
 
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.25"
