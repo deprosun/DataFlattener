@@ -98,9 +98,9 @@ TABLE Donut (
 
 	TABLE Batter FROM batters.batter WITH (donutUniqueId = donutId) (
 		MAPPING (
-					id        = batterUID    		VARCHAR    NOT NULL  PK
-					donutId   = donutParentId       VARCHAR    NOT NULL  FK
-					type      = batterType   		VARCHAR    NOT NULL
+			id        = batterUID    		VARCHAR    NOT NULL  PK
+			donutId   = donutParentId       VARCHAR    NOT NULL  FK
+			type      = batterType   		VARCHAR    NOT NULL
 		)
 	)
 )
