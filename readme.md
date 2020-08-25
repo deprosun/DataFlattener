@@ -16,8 +16,9 @@ case class Row(columns: List[Column])
 ```
 
 * `Column` : `Column` contains the name of the column and value associated with it.
-```
-case class Column(name: String, value: Option[Any])
+
+```scala
+case class Column(mappingContext: StraightMappingContext, value: JValue])
 ```
 
 ## Inspiration
