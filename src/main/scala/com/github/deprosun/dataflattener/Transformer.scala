@@ -1,7 +1,7 @@
 package com.github.deprosun.dataflattener
 
 import com.github.deprosun.dataflattener.model._
-import org.json4s.JsonAST.{JField, JNothing, JObject, JValue}
+import org.json4s.JsonAST.{JArray, JField, JNothing, JObject, JValue}
 import org.json4s.JsonDSL._
 import org.json4s.native.JsonMethods._
 import org.slf4j.Logger
@@ -65,6 +65,76 @@ trait Transformer {
     Column(mappingContext, traversed)
   }
 
+  def getValueFromInternal(json: JValue, context: InternalMappingContext): Column = {
+
+    //first traverse to actual json value
+    val traversed: JValue = traversePath(json, context.path)
+
+    //get values from parent
+    //this will be broadcasted to all the children component of the json
+    val neededValues: JValue = context.collectedValues map { case (key, valuePaths) =>
+      val initial: JValue = JNothing
+
+      val valueFromParent: JValue = key -> valuePaths.foldLeft(initial) { case (acc, (k, path)) =>
+        val value: JValue = k -> traversePath(json, path)
+        acc merge value
+      }
+
+      valueFromParent
+    } getOrElse JNothing
+
+    //
+    val merged: JValue = traversed match {
+      case JArray(arr) =>
+        val merged = arr map { j => j merge neededValues }
+        JArray(merged)
+    }
+
+    val transformed: JValue = merged match {
+      case JArray(arr) =>
+
+        val straightMappings =
+          context.mappingContext.filter(_.isInstanceOf[StraightMappingContext])
+
+        val explodeMappings =
+          context.mappingContext.filter(_.isInstanceOf[ExplodeMappingContext])
+
+        val internalMappings =
+          context.mappingContext.filter(_.isInstanceOf[InternalMappingContext])
+
+        arr map { json =>
+
+          val internalStructs: List[Column] = internalMappings map { i =>
+            getValueFromInternal(json, i.asInstanceOf[InternalMappingContext])
+          }
+
+          val simpleColumns: List[Column] = getFlatColumns(json, straightMappings)
+
+          val flattenedRow = Row(simpleColumns ++ internalStructs)
+
+          //get all the rows from exploded mappings
+          val moreInnerRows: List[Row] = getRowsFromExplode(json, explodeMappings)
+
+          //for all additional rows from explosion, add the single row we got from the set of StraightMappings
+          val allRows = if (moreInnerRows.nonEmpty) {
+            moreInnerRows map { row => row.copy(columns = flattenedRow.columns ++ row.columns) }
+          } else {
+            flattenedRow :: Nil
+          }
+
+          val initial: JValue = JNothing
+
+          allRows.foldLeft(initial) { case (acc, x) =>
+            acc merge x.toJson
+          }
+        }
+
+      //        JArray(array)
+    }
+
+    Column(context, transformed)
+  }
+
   private def getFlatColumns(json: JValue, mappings: List[MappingContext]): List[Column] = {
     //first get all the columns that are to be retrieved from this json
     mappings filter (_.isInstanceOf[StraightMappingContext]) map { case x: StraightMappingContext =>
@@ -82,9 +152,11 @@ trait Transformer {
 
       val explodedJson = traversePath(json, y.path)
 
-      val (straightMappings, moreExplodeMappings) =
-        y.mappingContext.partition(_.isInstanceOf[StraightMappingContext])
+      val straightMappings = y.mappingContext.filter(_.isInstanceOf[StraightMappingContext])
 
+      val moreExplodeMappings = y.mappingContext.filter(_.isInstanceOf[ExplodeMappingContext])
+
+      val internalMappings = y.mappingContext.filter(_.isInstanceOf[InternalMappingContext])
 
       explodedJson.children flatMap { j =>
 
@@ -92,7 +164,13 @@ trait Transformer {
           acc merge x
         )
 
-        val flattenedRow = Row(getFlatColumns(json, straightMappings))
+        val internalStructs: List[Column] = internalMappings map { i =>
+          getValueFromInternal(json, i.asInstanceOf[InternalMappingContext])
+        }
+
+        val simpleColumns: List[Column] = getFlatColumns(json, straightMappings)
+
+        val flattenedRow = Row(simpleColumns ++ internalStructs)
 
         val moreInnerRows: List[Row] = getRowsFromExplode(j, moreExplodeMappings)
 
@@ -138,13 +216,23 @@ trait Transformer {
       }
 
       //get the straight mappings and explode mappings
-      val (straightMappings, explodeMappings) =
-        mapperContext.mappings.partition(_.isInstanceOf[StraightMappingContext])
+      val straightMappings = mapperContext.mappings.filter(_.isInstanceOf[StraightMappingContext])
+
+      val explodeMappings = mapperContext.mappings.filter(_.isInstanceOf[ExplodeMappingContext])
+
+      //get the internal mappings
+      val internalMappings = mapperContext.mappings.filter(_.isInstanceOf[InternalMappingContext])
 
       val tableRows: List[Row] = sourceData flatMap { sourceJson =>
 
+        val internalStructs: List[Column] = internalMappings map { i =>
+          getValueFromInternal(sourceJson, i.asInstanceOf[InternalMappingContext])
+        }
+
+        val simpleColumns: List[Column] = getFlatColumns(sourceJson, straightMappings)
+
         //get a row that from all the straight mappings
-        val flattenedRow = Row(getFlatColumns(sourceJson, straightMappings))
+        val flattenedRow = Row(simpleColumns ++ internalStructs)
 
         //get all the rows from exploded mappings
         val moreInnerRows: List[Row] = getRowsFromExplode(sourceJson, explodeMappings)
@@ -200,10 +288,9 @@ trait Transformer {
     }
   }
 
-
 }
 
-case class Column(mappingContext: StraightMappingContext, value: JValue) {
+case class Column(mappingContext: ColumnMappingContext, value: JValue) {
   def toJson: JValue = mappingContext.desiredColumnName -> value
 }
 

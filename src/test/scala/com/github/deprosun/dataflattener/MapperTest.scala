@@ -551,6 +551,93 @@ class MapperTest extends TestStyle {
       }
     }
 
+    describe("Table with INTERNAL") {
+
+      val config =
+
+        """
+          |TABLE Sample (
+          |    MAPPING (
+          |        eventBody.policy.policyNumber                                =   policyNumber          VARCHAR   NOT NULL
+          |        INTERNAL eventBody.advisors = advisors BROADCAST (eventBody.policy.policyNumber) AS needed (
+          |            advisorId                                   = advisorId             VARCHAR     NOT NULL
+          |            needed.eventBody.policy.policyNumber        = policyNumber          VARCHAR     NOT NULL
+          |        )
+          |    )
+          |)
+        """.stripMargin
+
+      it("should be parsable") {
+
+        val actual = MapperContext.getMappers(config) head
+
+        println(actual)
+
+        val expected = MapperContext(
+          tableName = "Sample",
+          fromField = None,
+          filter = None,
+          copiedKeys = Map(),
+          mappings = List(
+            StraightMappingContext(
+              SimpleJsonPathContext(
+                List(PathName("eventBody"), PathName("policy"), PathName("policyNumber"))
+              ),
+              "policyNumber",
+              "VARCHAR",
+              Nil,
+              isNull = false,
+              Nil
+            ),
+            InternalMappingContext(
+              SimpleJsonPathContext(
+                List(
+                  PathName("eventBody"),
+                  PathName("advisors")
+                )
+              ),
+              "advisors",
+              Option(
+                "needed" -> Map(
+                  "eventBody.policy.policyNumber" -> SimpleJsonPathContext(
+                    List(PathName("eventBody"), PathName("policy"), PathName("policyNumber"))
+                  )
+                )
+              ),
+              List(
+                StraightMappingContext(
+                  SimpleJsonPathContext(
+                    List(PathName("advisorId"))
+                  ),
+                  "advisorId",
+                  "VARCHAR",
+                  Nil,
+                  isNull = false,
+                  Nil
+                ),
+                StraightMappingContext(
+                  SimpleJsonPathContext(
+                    List(PathName("needed"), PathName("eventBody"), PathName("policy"), PathName("policyNumber"))
+                  ),
+                  "policyNumber",
+                  "VARCHAR",
+                  Nil,
+                  isNull = false,
+                  Nil
+                )
+              )
+            )
+          ),
+          children = Nil
+        )
+
+        val diff = parse(MapperContext.toJSON(actual)).diff(parse(MapperContext.toJSON(expected)))
+
+        assert(actual == expected, diff)
+
+      }
+    }
+
   }
 
 }

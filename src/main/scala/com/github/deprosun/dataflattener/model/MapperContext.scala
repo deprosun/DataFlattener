@@ -192,14 +192,37 @@ object MapperContext {
     StraightMappingContext(path, desiredColumnName, dataType, precision, isNull, attributes)
   }
 
+  def getInternalMappingContext(context: FlattenerParser.Internal_mappingContext): MappingContext = {
+    val path = getJsonPathContext(context.json_path())
+
+    val collectedValues = Option(context.broadcast()) map { b =>
+      val alias = b.as().id().getText
+
+      val valuePaths = b.json_path() map { c =>
+        c.simple_json_path().getText -> getJsonPathContext(c)
+      } toMap
+
+      alias -> valuePaths
+    }
+
+    val columnName = context.column_name().id().getText
+
+    val mappings = context.mapping() map getMappingContext toList
+
+    InternalMappingContext(path, columnName, collectedValues, mappings)
+  }
+
   /**
     * Function to convert FlattenerParser.MappingContext to MappingContext case class
     */
   private def getMappingContext(context: FlattenerParser.MappingContext): MappingContext = {
     val isExplode = Option(context.explode_mapping()).nonEmpty
+    val isInternal = Option(context.internal_mapping()).nonEmpty
 
     if (isExplode)
       getExplodeMappingContext(context.explode_mapping())
+    else if (isInternal)
+      getInternalMappingContext(context.internal_mapping())
     else
       getStraightMappingContext(context.straight_mapping())
   }
@@ -290,15 +313,23 @@ trait MappingContext {
   val path: JsonPathContext
 }
 
+trait ColumnMappingContext extends MappingContext {
+  val desiredColumnName: String
+}
+
 case class StraightMappingContext(path: JsonPathContext,
                                   desiredColumnName: String,
                                   dataType: String,
                                   precision: List[String],
                                   isNull: Boolean,
-                                  attributes: List[AttributeContext]) extends MappingContext
+                                  attributes: List[AttributeContext]) extends ColumnMappingContext
 
 case class ExplodeMappingContext(path: JsonPathContext, copiedKeys: Map[String, JsonPathContext],
                                  mappingContext: List[MappingContext]) extends MappingContext
+
+case class InternalMappingContext(path: JsonPathContext, desiredColumnName: String,
+                                  collectedValues: Option[(String, Map[String, JsonPathContext])],
+                                  mappingContext: List[MappingContext]) extends ColumnMappingContext
 
 
 trait JsonPathContext
@@ -308,7 +339,6 @@ case class MapFunctionJsonPathContext(funcName: String, functionParams: List[Jso
 case class SimpleJsonPathContext(path: List[PathName]) extends JsonPathContext
 
 case class ConcatJsonPathContext(path: List[PathName], separator: String) extends JsonPathContext
-
 
 case class Filter(path: JsonPathContext, path2: JsonPathContext)
 

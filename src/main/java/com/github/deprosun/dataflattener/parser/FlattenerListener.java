@@ -1,4 +1,4 @@
-// Generated from /Users/mm10444/Projects/streaming-platform/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
+// Generated from /Users/kgupta/projects/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
 package com.github.deprosun.dataflattener.parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -48,6 +48,16 @@ public interface FlattenerListener extends ParseTreeListener {
 	 */
 	void exitMapping(FlattenerParser.MappingContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#internal_mapping}.
+	 * @param ctx the parse tree
+	 */
+	void enterInternal_mapping(FlattenerParser.Internal_mappingContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#internal_mapping}.
+	 * @param ctx the parse tree
+	 */
+	void exitInternal_mapping(FlattenerParser.Internal_mappingContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#explode_mapping}.
 	 * @param ctx the parse tree
 	 */
@@ -67,6 +77,26 @@ public interface FlattenerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitWith(FlattenerParser.WithContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#broadcast}.
+	 * @param ctx the parse tree
+	 */
+	void enterBroadcast(FlattenerParser.BroadcastContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#broadcast}.
+	 * @param ctx the parse tree
+	 */
+	void exitBroadcast(FlattenerParser.BroadcastContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FlattenerParser#as}.
+	 * @param ctx the parse tree
+	 */
+	void enterAs(FlattenerParser.AsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FlattenerParser#as}.
+	 * @param ctx the parse tree
+	 */
+	void exitAs(FlattenerParser.AsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FlattenerParser#straight_mapping}.
 	 * @param ctx the parse tree

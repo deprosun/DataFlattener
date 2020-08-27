@@ -450,4 +450,128 @@ class TransformerTest extends TestStyle {
 
     }
   }
+
+  describe("A full transformation with Parent and Child tables " +
+    "and where an internal array field is mapped") {
+    val transformer: Transformer = new Transformer {
+
+      override val logger: Logger = LoggerFactory.getLogger("demo")
+
+      def extractJson(json: JValue): Option[Any] = Option(json)
+
+      override val udfMap: Map[String, this.MapFunc] = Map()
+    }
+
+    it("should work") {
+
+      val json = parse(
+        """
+          |{
+          |    	"donutUniqueId": "0001",
+          |    	"type": "donut",
+          |    	"name": "Cake",
+          |    	"ppu": 0.55,
+          |    	"batters": {
+          |    			"batter": [
+          |    					{ "id": "1001", "type": "Regular" },
+          |    					{ "id": "1002", "type": "Chocolate" },
+          |    					{ "id": "1003", "type": "Blueberry" },
+          |    					{ "id": "1004", "type": "Devil's Food" }
+          |    				]
+          |    		},
+          |    	"topping":
+          |    		[
+          |    			{ "id": "5001", "type": "None" },
+          |    			{ "id": "5002", "type": "Glazed" },
+          |    			{ "id": "5005", "type": "Sugar" },
+          |    			{ "id": "5007", "type": "Powdered Sugar" },
+          |    			{ "id": "5006", "type": "Chocolate with Sprinkles" },
+          |    			{ "id": "5003", "type": "Chocolate" },
+          |    			{ "id": "5004", "type": "Maple" }
+          |    		]
+          |}
+        """.stripMargin
+      )
+
+      val mapperConfig =
+        """
+          |TABLE Donut (
+          |
+          |	MAPPING (
+          |		donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
+          |		name               = donutName  VARCHAR    NOT NULL
+          |   INTERNAL batters.batter = batterss BROADCAST (donutUniqueId) AS needed (
+          |     type  = batterType  VARCHAR NOT NULL
+          |     needed.donutUniqueId = dId  VARCHAR NOT NULL
+          |   )
+          |	)
+          |)
+        """.stripMargin
+
+      val mappers = MapperContext.getMappers(mapperConfig)
+
+
+      mappers foreach { x =>
+
+        val transformed = transformer.transform(json, x)
+
+        //lets print
+        transformed foreach { y =>
+          println(y.toJsonString)
+        }
+
+        //lets also assert few things
+        //        assert(transformed.length == 2) //one for donut and batter
+        //
+        //        val List(donut, batter) = transformed
+        //
+        //        val donutTable = Table("Donut", List(
+        //          Row(
+        //            List(
+        //              Column(mappers.head.mappings.head.asInstanceOf[StraightMappingContext], JString("0001")),
+        //              Column(mappers.head.mappings.last.asInstanceOf[StraightMappingContext], JString("Cake"))
+        //            )
+        //          )
+        //        ))
+        //
+        //        assert(donut == donutTable)
+        //
+        //        val batterTable = Table("Batter", List(
+        //          Row(
+        //            List(
+        //              Column(mappers.last.children.head.mappings.head.asInstanceOf[StraightMappingContext], JString("1001")),
+        //              Column(mappers.last.children.head.mappings(1).asInstanceOf[StraightMappingContext], JString("0001")),
+        //              Column(mappers.last.children.head.mappings.last.asInstanceOf[StraightMappingContext], JString("Regular"))
+        //            )
+        //          ),
+        //          Row(
+        //            List(
+        //              Column(mappers.last.children.head.mappings.head.asInstanceOf[StraightMappingContext], JString("1002")),
+        //              Column(mappers.last.children.head.mappings(1).asInstanceOf[StraightMappingContext], JString("0001")),
+        //              Column(mappers.last.children.head.mappings.last.asInstanceOf[StraightMappingContext], JString("Chocolate"))
+        //            )
+        //          ),
+        //          Row(
+        //            List(
+        //              Column(mappers.last.children.head.mappings.head.asInstanceOf[StraightMappingContext], JString("1003")),
+        //              Column(mappers.last.children.head.mappings(1).asInstanceOf[StraightMappingContext], JString("0001")),
+        //              Column(mappers.last.children.head.mappings.last.asInstanceOf[StraightMappingContext], JString("Blueberry"))
+        //            )
+        //          ),
+        //          Row(
+        //            List(
+        //              Column(mappers.last.children.head.mappings.head.asInstanceOf[StraightMappingContext], JString("1004")),
+        //              Column(mappers.last.children.head.mappings(1).asInstanceOf[StraightMappingContext], JString("0001")),
+        //              Column(mappers.last.children.head.mappings.last.asInstanceOf[StraightMappingContext], JString("Devil's Food"))
+        //            )
+        //          )
+        //        ))
+        //
+        //        assert(batter == batterTable)
+
+      }
+
+
+    }
+  }
 }
