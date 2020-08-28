@@ -100,17 +100,28 @@ object MappingContext {
 
     val path = getJsonPathContext(context.json_path())
 
-    val copiedKeys = Option(context.`with`()) map { w =>
-      w.mappingAlias() map { x =>
-        val alias = x.column_name().id().getText
+    val collectedValues: Map[String, JsonPathContext] = Option(context.broadcast()) map { b =>
 
-        alias -> getJsonPathContext(x.json_path())
+      b.alias_json_path() map { c =>
+
+        val pathContext: JsonPathContext = getJsonPathContext(c.json_path())
+
+        Option(c.as()) map { as =>
+          as.id().getText -> pathContext
+        } getOrElse {
+
+          //assume that user inputed a column that is of format a.b.d
+          c.json_path().simple_json_path().getText -> pathContext
+        }
       } toMap
-    } getOrElse Map()
+
+    } getOrElse {
+      Map()
+    }
 
     val mappings = context.mapping() map getMappingContext toList
 
-    ExplodeMappingContext(path, copiedKeys, mappings)
+    ExplodeMappingContext(path, collectedValues, mappings)
   }
 
   /**
@@ -137,8 +148,8 @@ object MappingContext {
 trait MappingContext
 
 trait ColumnMappingContext extends MappingContext {
-  val desiredColumnName: String
   val dataType: String
+  val mappings: List[MappingContext]
 }
 
 case class StraightMappingContext(path: JsonPathContext,
@@ -146,22 +157,23 @@ case class StraightMappingContext(path: JsonPathContext,
                                   dataType: String,
                                   precision: List[String],
                                   isNull: Boolean,
-                                  attributes: List[AttributeContext]) extends ColumnMappingContext
+                                  attributes: List[AttributeContext],
+                                  mappings: List[MappingContext] = Nil) extends ColumnMappingContext
 
 case class ExplodeMappingContext(path: JsonPathContext, copiedKeys: Map[String, JsonPathContext],
-                                 mappingContext: List[MappingContext]) extends MappingContext
+                                 mappings: List[MappingContext]) extends MappingContext
 
 
 case class ObjectMappingContext(desiredColumnName: String,
                                 collectedValues: Map[String, JsonPathContext],
-                                mappingContext: List[MappingContext]) extends ColumnMappingContext {
+                                mappings: List[MappingContext]) extends ColumnMappingContext {
   val dataType = "JSON"
 }
 
 case class ListMappingContext(path: JsonPathContext,
                               desiredColumnName: String,
                               collectedValues: Map[String, JsonPathContext],
-                              mappingContext: List[MappingContext]) extends ColumnMappingContext {
+                              mappings: List[MappingContext]) extends ColumnMappingContext {
   val dataType = "JSON"
 }
 
