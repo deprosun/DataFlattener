@@ -249,7 +249,7 @@ scala>
 2. Let's create our source JSON from above.  Imports some stuff and create your sample json
 
 ```scala
-import com.github.deprosun.dataflattener.Transformer
+import com.github.deprosun.dataflattener.transform.Transformer
 import com.github.deprosun.dataflattener.model.MapperContext
 import org.json4s
 import org.json4s.JValue
@@ -321,7 +321,7 @@ val record: JValue = parse(sourceJSON)
 6. When we define a mapper we also define a set of "business" rules and function that are sometimes referred to as UDF in sql world. Lets defined (or rather implements) these rules so that transformation only adheres only _businesse's_ definition of transformation.  For now, please ignore the variables: `logger`, `toLowerCase`, and `udfMap`.  We will go over them later.  Simply copy and paste the following and create your transformer:
 
 ```scala
-import com.github.deprosun.dataflattener.Transformer
+import com.github.deprosun.dataflattener.transform.Transformer
 import org.slf4j.{Logger, LoggerFactory}
 
 val transformer: Transformer = new Transformer {
@@ -357,7 +357,7 @@ val tranformed = mappers map { mapper =>
 
 ```scala
 java.lang.IllegalArgumentException: Column donutId cannot be null.
-  at com.github.deprosun.dataflattener.Transformer$class.getValueFromStraight(Transformer.scala:67)
+  at com.github.deprosun.dataflattener.transform.Transformerransformer$class.getValueFromStraight(Transformer.scala:67)
   at $anon$1.getValueFromStraight(<console>:34)
 ```
 
