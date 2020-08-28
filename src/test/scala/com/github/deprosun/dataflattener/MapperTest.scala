@@ -559,9 +559,9 @@ class MapperTest extends TestStyle {
           |TABLE Sample (
           |    MAPPING (
           |        eventBody.policy.policyNumber                                =   policyNumber          VARCHAR   NOT NULL
-          |        INTERNAL eventBody.advisors = advisors BROADCAST (eventBody.policy.policyNumber) AS needed (
+          |        LIST advisors FROM eventBody.advisors BROADCAST (eventBody.policy.policyNumber AS pNumber) (
           |            advisorId                                   = advisorId             VARCHAR     NOT NULL
-          |            needed.eventBody.policy.policyNumber        = policyNumber          VARCHAR     NOT NULL
+          |            pNumber                                     = policyNumber          VARCHAR     NOT NULL
           |        )
           |    )
           |)
@@ -589,7 +589,7 @@ class MapperTest extends TestStyle {
               isNull = false,
               Nil
             ),
-            InternalMappingContext(
+            ListMappingContext(
               SimpleJsonPathContext(
                 List(
                   PathName("eventBody"),
@@ -597,12 +597,9 @@ class MapperTest extends TestStyle {
                 )
               ),
               "advisors",
-              Option(
-                "needed" -> Map(
-                  "eventBody.policy.policyNumber" -> SimpleJsonPathContext(
-                    List(PathName("eventBody"), PathName("policy"), PathName("policyNumber"))
-                  )
-                )
+              Map(
+                "pNumber" ->
+                  SimpleJsonPathContext(List(PathName("eventBody"), PathName("policy"), PathName("policyNumber")))
               ),
               List(
                 StraightMappingContext(
@@ -617,7 +614,7 @@ class MapperTest extends TestStyle {
                 ),
                 StraightMappingContext(
                   SimpleJsonPathContext(
-                    List(PathName("needed"), PathName("eventBody"), PathName("policy"), PathName("policyNumber"))
+                    List(PathName("pNumber"))
                   ),
                   "policyNumber",
                   "VARCHAR",

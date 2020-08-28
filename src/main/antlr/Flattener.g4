@@ -12,11 +12,15 @@ child_mapper
     ;
 
 mapping
-    : straight_mapping | explode_mapping | internal_mapping
+    : straight_mapping | explode_mapping | object_mapping | list_mapping
     ;
 
-internal_mapping
-    : 'INTERNAL' json_path '=' column_name broadcast? '(' mapping+ ')'
+object_mapping
+    : 'OBJECT' column_name from '(' mapping+ ')'
+    ;
+
+list_mapping
+    : 'LIST' column_name 'FROM' json_path broadcast? '(' mapping+ ')'
     ;
 
 explode_mapping
@@ -27,8 +31,16 @@ with
     : 'WITH' '(' mappingAlias (',' mappingAlias)* ')'
     ;
 
+from
+    : 'FROM' '(' alias_json_path (',' alias_json_path)* ')'
+    ;
+
 broadcast
-    : 'BROADCAST' '(' json_path (',' json_path)* ')' as
+    : 'BROADCAST' '(' alias_json_path (',' alias_json_path)* ')'
+    ;
+
+alias_json_path
+    : json_path as?
     ;
 
 as

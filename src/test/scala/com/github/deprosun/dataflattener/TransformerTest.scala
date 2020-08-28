@@ -1,8 +1,9 @@
 package com.github.deprosun.dataflattener
 
 import com.github.deprosun.dataflattener.model.{MapperContext, PathName, SimpleJsonPathContext, StraightMappingContext}
+import com.github.deprosun.dataflattener.transform.{Column, Row, Table, Transformer}
 import org.json4s.JValue
-import org.json4s.JsonAST._
+import org.json4s.JsonAST.{JValue, _}
 import org.json4s.native.JsonMethods._
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -166,7 +167,18 @@ class TransformerTest extends TestStyle {
         val insured: JValue = json.head \ "dob"
         val owners: JArray = json.last.extract[JArray]
 
-        val ownersDob = owners filterField { case (x, _) => x == "dob" } map { case (_, v) => "dateOfBirth" -> v }
+        //        val ownersDob: List[(String, JValue)] = owners filterField { case (x, _) => x == "dob" } map { case (_, v) => "dateOfBirth" -> v }
+
+        val ownersDob = owners filterField {
+          case (x, _) => x == "dob" || x == "govId" || x == "govIdType"
+        } map {
+          case ("dob", v) =>
+            "dateOfBirth" -> v
+          case ("govId", v) =>
+            "identification" -> JObject("govId" -> v)
+          case ("govIdType", v) =>
+            "identification" -> JObject("govIdType" -> v)
+        }
 
         val allDobs: List[JField] = ("dateOfBirth" -> insured) :: ownersDob
 
@@ -194,10 +206,13 @@ class TransformerTest extends TestStyle {
 
       def extractJson(json: JValue): Option[Any] = Option(json)
 
-      override val udfMap: Map[String, this.MapFunc] = Map(
+      def addField(json: List[JValue]): JValue = JString("7")
+
+      override val udfMap: Map[String, List[JValue] => JValue] = Map(
         "encrypt" -> encrypt,
         "combineParties" -> combineParties,
-        "onlyAdvisorId" -> onlyAdvisorId
+        "onlyAdvisorId" -> onlyAdvisorId,
+        "addField" -> addField
       )
     }
 
@@ -293,25 +308,22 @@ class TransformerTest extends TestStyle {
 
       val mapper =
         """
-          |TABLE A360 (
-          |    MAPPING (
-          |        eventBody.policy.policyNumber                               =   policyNumber          VARCHAR   NOT NULL
-          |        eventBody.policy.companyCode                                =   companyCode           VARCHAR   NOT NULL
-          |        eventBody.policy.status                                     =   status                VARCHAR   NOT NULL
-          |        eventBody.policy.faceAmount                                 =   faceAmount            INT       NOT NULL
-          |        combineParties(eventBody.insured, eventBody.owners)         =   parties               JSON      NOT NULL
-          |        onlyAdvisorId(eventBody.advisors)                                          =   relatedAdvisors       JSON      NOT NULL
-          |        // TO BE DETERMINED =   externalReference     VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   productName           VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   statusReason          VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   statusDate            VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   premiumFrequency      VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   initialPremium        VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   submittedDate         VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   underwritingContact   VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   caseManager           VARCHAR   NOT NULL
-          |        // TO BE DETERMINED =   asOfDate              VARCHAR   NOT NULL
-          |    )
+          |TABLE Donut (
+          |
+          |	MAPPING (
+          |		eventBody.policy.policyNumber                               =   policyNumber          VARCHAR       NOT NULL
+          |   eventBody.policy.companyCode                                =   companyCode           VARCHAR       NOT NULL
+          |   eventBody.policy.status                                     =   status                VARCHAR       NOT NULL
+          |   eventBody.policy.faceAmount                                 =   faceAmount            INT           NOT NULL
+          |   addField()                                                  =   addedColumn           VARCHAR       NOT NULL
+          |   LIST parties FROM eventBody.owners (
+          |     dob                   = dateOfBirth  VARCHAR NOT NULL
+          |     OBJECT identification FROM (govId, govIdType) (
+          |       govId               = govId      VARCHAR NOT NULL
+          |       govIdType           = govIdType  VARCHAR NOT NULL
+          |     )
+          |   )
+          |	)
           |)
         """.stripMargin
 
@@ -471,6 +483,7 @@ class TransformerTest extends TestStyle {
           |    	"type": "donut",
           |    	"name": "Cake",
           |    	"ppu": 0.55,
+          |     "gateType" : "someType",
           |    	"batters": {
           |    			"batter": [
           |    					{ "id": "1001", "type": "Regular" },
@@ -498,11 +511,10 @@ class TransformerTest extends TestStyle {
           |TABLE Donut (
           |
           |	MAPPING (
-          |		donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
-          |		name               = donutName  VARCHAR    NOT NULL
-          |   INTERNAL batters.batter = batterss BROADCAST (donutUniqueId) AS needed (
-          |     type  = batterType  VARCHAR NOT NULL
-          |     needed.donutUniqueId = dId  VARCHAR NOT NULL
+          |		donutUniqueId             = donutUID   VARCHAR    NOT NULL  PK
+          |		name                      = donutName  VARCHAR    NOT NULL
+          |   OBJECT identification FROM (gateType AS gType) (
+          |     gType         = gateTypeId  VARCHAR NOT NULL
           |   )
           |	)
           |)
