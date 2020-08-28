@@ -3,7 +3,7 @@ import Library._
 
 name := "DataFlattener"
 
-version := "9.0"
+version := "10.0"
 
 scalaVersion := "2.11.11"
 
