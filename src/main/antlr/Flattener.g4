@@ -24,7 +24,7 @@ list_mapping
     ;
 
 explode_mapping
-    : 'explode(' json_path ')' with? '(' mapping+ ')'
+    : 'EXPLODE' json_path broadcast? '(' mapping+ ')'
     ;
 
 with
