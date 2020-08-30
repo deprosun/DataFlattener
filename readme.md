@@ -206,7 +206,7 @@ I'd like to create a Table `Topping` from the `topping` field.  Moreover, I'd li
 TABLE Topping (
     MAPPING (
         type              = donutName           VARCHAR   NOT NULL
-        explode(topping) (
+        EXPLODE topping (
             id              = id           VARCHAR (100)   NOT NULL
             type            = toppingName  VARCHAR (100)   NOT NULL
         )
@@ -218,10 +218,10 @@ TABLE Topping (
 
 ![readme-4](https://www.plantuml.com/plantuml/png/SoWkIImgAStDuTBGqbJGrRLJK0hEBorAJbNm2lRtKmXAJSulIb52IFec5XIa5Yauv-UbPQOhSQ7n8MfS4aiI5Tno4ajAKlDIYu2Ai9Y8GoMQ04HLI69IJgf2I7v1GMOUq4w7rBmKe8C1 "readme-4")
 
-Let's look at `explode`. So far we have only seen 1 row getting created in the above example for the parent table.  Sometimes,  there are requirements, like above, where 1 row actually yield multiple.  `explode` tells DataFlattener exactly just that.  It says:
+Let's look at `EXPLODE`. So far we have only seen 1 row getting created in the above example for the parent table.  Sometimes,  there are requirements, like above, where 1 row actually yield multiple.  `EXPLODE` tells DataFlattener exactly just that.  It says:
 > _the total number of rows yielded in Topping table will be the number of rows in `topping` fields._
 
-Any mappings defined outside of `explode` clause, simply "get added" to each row came by "exploding" the `topping` field.  That is why you see "Cake" multiple times in the final output. 
+Any mappings defined outside of `EXPLODE` clause, simply "get added" to each row came by "exploding" the `topping` field.  That is why you see "Cake" multiple times in the final output.
 
 ```log
 //Topping Table
