@@ -6,6 +6,7 @@ import org.json4s.JsonAST.{JValue, _}
 import org.json4s.native.JsonMethods._
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.language.postfixOps
 import scala.util.Random
 
 class TransformerTest extends TestStyle {
@@ -216,7 +217,17 @@ class TransformerTest extends TestStyle {
     }
 
     it("CoverPath to A360") {
-      val json = parse(
+
+      def runTest(sourceJSON: String, mapper: String): String = {
+        val json = parse(sourceJSON)
+        MapperContext.getMappers(mapper) flatMap { x =>
+          transformer.transform(json, x) map { y => //testing transformer.transform
+            y.toJsonString
+          }
+        } head
+      }
+
+      val testJSON =
         """
           |{
           |    "eventHeader":{
@@ -303,7 +314,6 @@ class TransformerTest extends TestStyle {
           |    }
           |}
         """.stripMargin
-      )
 
       val mapper =
         """
@@ -326,24 +336,53 @@ class TransformerTest extends TestStyle {
           |)
         """.stripMargin
 
-      MapperContext.getMappers(mapper) foreach { x =>
-        transformer.transform(json, x) foreach { y =>
-          println(y.toJsonString)
-        }
-      }
+      val result = runTest(testJSON, mapper)
+
+      val expected =
+        """
+          |{
+          |    "Donut": [
+          |        {
+          |            "policyNumber": "402000000",
+          |            "companyCode": "CP45",
+          |            "status": "submitted",
+          |            "faceAmount": 500000,
+          |            "addedColumn": "7",
+          |            "parties": [
+          |                {
+          |                    "dateOfBirth": "1987-07-02T00:00:00Z",
+          |                    "identification": {
+          |                        "govId": "341127689",
+          |                        "govIdType": "SSN"
+          |                    }
+          |                },
+          |                {
+          |                    "dateOfBirth": "1986-03-21T00:00:00Z",
+          |                    "identification": {
+          |                        "govId": "125677689",
+          |                        "govIdType": "SSN"
+          |                    }
+          |                }
+          |            ]
+          |        }
+          |    ]
+          |}
+        """.stripMargin
+
+      assert(parse(result) == parse(expected))
     }
 
   }
 
   describe("Sample transformation with explode") {
 
-    def superSafeEncryptionApi(s: String) = {
-      s.reverse.foldLeft("") { (acc, x) =>
-        acc + Random.nextPrintableChar() + x
-      }
-    }
 
     val transformer: Transformer = new Transformer {
+      def superSafeEncryptionApi(s: String): String = {
+        s.reverse.foldLeft("") { (acc, x) =>
+          acc + Random.nextPrintableChar() + x
+        }
+      }
 
       override val logger: Logger = getLogger
 
@@ -407,6 +446,7 @@ class TransformerTest extends TestStyle {
     }
 
     it("CoverPath to A360") {
+
       val json = parse(
         """
           |{
