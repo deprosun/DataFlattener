@@ -77,7 +77,7 @@ trait Transformer {
     Column(mappingContext.desiredColumnName, mappingContext, traversed)
   }
 
-  def getJson(jsonList: List[JValue], context: ColumnMappingContext, mergeFunc: JValue => JValue): JValue = {
+  def getJson(jsonList: List[JValue], context: ColumnMappingContext, mergeFunc: JValue => JValue): List[JValue] = {
 
     val straightMappings = getStraightMappings(context.mappings)
 
@@ -133,7 +133,12 @@ trait Transformer {
     val transformed: JValue = traversed match {
       case json: JValue =>
         val no_op = (x: JValue) => x
-        getJson(List(json), context, no_op)
+        getJson(List(json), context, no_op) match {
+          case (JNothing | JNull) :: Nil => JNothing
+          case (x: JObject) :: Nil => x
+          case _ :: xs if xs.nonEmpty =>
+            throw new RuntimeException("Unexpected Exception. The list should be only of one length")
+        }
     }
 
     Column(context.desiredColumnName, context, transformed)
