@@ -6,6 +6,8 @@ import org.json4s.JsonDSL._
 import org.json4s.native.JsonMethods._
 import org.slf4j.Logger
 
+import scala.language.postfixOps
+
 trait Transformer {
 
   val logger: Logger
@@ -77,15 +79,26 @@ trait Transformer {
     Column(mappingContext.desiredColumnName, mappingContext, traversed)
   }
 
-  def getJson(jsonList: List[JValue], context: ColumnMappingContext, mergeFunc: JValue => JValue): List[JValue] = {
+  def rowsToJSON(rows: List[Row]): JValue = {
+    val initial: JValue = JNothing
 
-    val straightMappings = getStraightMappings(context.mappings)
+    rows.foldLeft(initial) { case (acc, x) =>
+      acc merge x.toJson
+    }
+  }
 
-    val explodeMappings = getExplodeMappings(context.mappings)
+  def getRows[T](jsonList: List[JValue],
+                 mappings: List[MappingContext],
+                 mergeFunc: JValue => JValue,
+                 convertFunc: List[Row] => T): List[T] = {
 
-    val objectMappings = getObjectMappings(context.mappings)
+    val straightMappings = getStraightMappings(mappings)
 
-    val listMappings = getListMappings(context.mappings)
+    val explodeMappings = getExplodeMappings(mappings)
+
+    val objectMappings = getObjectMappings(mappings)
+
+    val listMappings = getListMappings(mappings)
 
     jsonList map { j =>
 
@@ -107,17 +120,13 @@ trait Transformer {
       val moreInnerRows: List[Row] = getRowsFromExplode(json, explodeMappings)
 
       //for all additional rows from explosion, add the single row we got from the set of StraightMappings
-      val allRows = if (moreInnerRows.nonEmpty) {
+      val allRows: List[Row] = if (moreInnerRows.nonEmpty) {
         moreInnerRows map { row => row.copy(columns = flattenedRow.columns ++ row.columns) }
       } else {
         flattenedRow :: Nil
       }
 
-      val initial: JValue = JNothing
-
-      allRows.foldLeft(initial) { case (acc, x) =>
-        acc merge x.toJson
-      }
+      convertFunc(allRows)
     }
   }
 
@@ -133,7 +142,7 @@ trait Transformer {
     val transformed: JValue = traversed match {
       case json: JValue =>
         val no_op = (x: JValue) => x
-        getJson(List(json), context, no_op) match {
+        getRows(List(json), context.mappings, no_op, rowsToJSON) match {
           case (JNothing | JNull) :: Nil => JNothing
           case (x: JObject) :: Nil => x
           case _ :: xs if xs.nonEmpty =>
@@ -157,7 +166,7 @@ trait Transformer {
         val mergeFunc: JValue => JValue = (x: JValue) => {
           x merge neededValues
         }
-        getJson(arr, context, mergeFunc)
+        getRows(arr, context.mappings, mergeFunc, rowsToJSON)
       case x: JValue => throw new Error(s"The data type is for column ${context.desiredColumnName} is not list $x")
     }
 
@@ -174,41 +183,13 @@ trait Transformer {
 
       val explodedJson = traversePath(json, y.path)
 
-      val straightMappings = getStraightMappings(y.mappings)
+      val no_op_row = (x: List[Row]) => x
 
-      val objectMappings = getObjectMappings(y.mappings)
+      val mergeFunc: JValue => JValue = (j: JValue) => carryOvers.foldLeft(j)((acc, x) =>
+        acc merge x
+      )
 
-      val moreExplodeMappings = getExplodeMappings(y.mappings)
-
-      val listMappings = getListMappings(y.mappings)
-
-      explodedJson.children flatMap { j =>
-
-        val json = carryOvers.foldLeft(j)((acc, x) =>
-          acc merge x
-        )
-
-        val listColumns: List[Column] = listMappings map { i =>
-          getValueFromList(json, i.asInstanceOf[ListMappingContext])
-        }
-
-        val simpleColumns: List[Column] = getFlatColumns(json, straightMappings)
-
-        val objectColumns: List[Column] = objectMappings map { i =>
-          getValueFromObject(json, i.asInstanceOf[ObjectMappingContext])
-        }
-
-        val flattenedRow = Row(simpleColumns ++ objectColumns ++ listColumns)
-
-        val moreInnerRows: List[Row] = getRowsFromExplode(j, moreExplodeMappings)
-
-        if (moreInnerRows.nonEmpty) {
-          moreInnerRows map { row => row.copy(columns = flattenedRow.columns ++ row.columns) }
-        } else {
-          flattenedRow :: Nil
-        }
-
-      }
+      getRows(explodedJson.children, y.mappings, mergeFunc, no_op_row) flatten
     }
 
   }
@@ -282,43 +263,11 @@ trait Transformer {
       //get the source rows
       val sourceData: List[JValue] = getSourceRows(json, mapperContext, additionalValues)
 
-      //get the straight mappings and explode mappings
-      val straightMappings = getStraightMappings(mapperContext.mappings)
+      val no_op: JValue => JValue = (x: JValue) => x
 
-      //explode mappings
-      val explodeMappings = getExplodeMappings(mapperContext.mappings)
+      val no_op_row: List[Row] => List[Row] = (x: List[Row]) => x
 
-      //get the list mappings / JSON type columns
-      val listMappings = getListMappings(mapperContext.mappings)
-
-      //get the object mappings / JSON type columns
-      val objectMappings = getObjectMappings(mapperContext.mappings)
-
-      val tableRows: List[Row] = sourceData flatMap { sourceJson =>
-
-        val listColumns: List[Column] = listMappings map { i =>
-          getValueFromList(sourceJson, i.asInstanceOf[ListMappingContext])
-        }
-
-        val objectColumns: List[Column] = objectMappings map { i =>
-          getValueFromObject(json, i.asInstanceOf[ObjectMappingContext])
-        }
-
-        val simpleColumns: List[Column] = getFlatColumns(sourceJson, straightMappings)
-
-        //get a row that from all the straight mappings
-        val flattenedRow = Row(simpleColumns ++ objectColumns ++ listColumns)
-
-        //get all the rows from exploded mappings
-        val moreInnerRows: List[Row] = getRowsFromExplode(sourceJson, explodeMappings)
-
-        //for all additional rows from explosion, add the single row we got from the set of StraightMappings
-        if (moreInnerRows.nonEmpty) {
-          moreInnerRows map { row => row.copy(columns = flattenedRow.columns ++ row.columns) }
-        } else {
-          flattenedRow :: Nil
-        }
-      }
+      val tableRows: List[Row] = getRows(sourceData, mapperContext.mappings, no_op, no_op_row) flatten
 
       //get the children recursively
       val children: List[Table] = mapperContext.children flatMap { childMapper =>
