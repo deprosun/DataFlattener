@@ -47,7 +47,7 @@ class TransformerTest extends TestStyle {
         attributes = Nil
       )
 
-      val actual = transformer.getValueFromStraight(json, mapping)
+      val actual = transformer.getColumnStraight(json, mapping)
       val expected = Column("newColumnA", StraightMappingContext(SimpleJsonPathContext(List(PathName("a"))), "newColumnA", "varchar", List(), false, List()), JInt(5))
       assert(expected == actual)
 
@@ -64,12 +64,14 @@ class TransformerTest extends TestStyle {
         attributes = Nil
       )
 
-      transformer.getValueFromStraight(json, mapping) match {
+      transformer.getColumnStraight(json, mapping) match {
         case Column(colName, _, value) =>
           assert(colName == mapping.desiredColumnName, "Column names don't match.")
           value match {
             case JInt(x) => assert(x == 5, "Column values don't match.")
+            case _ => throw new RuntimeException("should not get here")
           }
+        case _ => throw new RuntimeException("should not get here")
       }
 
     }
@@ -85,11 +87,12 @@ class TransformerTest extends TestStyle {
         attributes = Nil
       )
 
-      transformer.getValueFromStraight(json, mapping) match {
+      transformer.getColumnStraight(json, mapping) match {
         case Column(colName, _, value) =>
           assert(colName == mapping.desiredColumnName, "Column names don't match.")
           value match {
             case JString(x) => assert(x == "foo", "Column values don't match.")
+            case _ => throw new RuntimeException("should not get here")
           }
       }
 
@@ -133,7 +136,7 @@ class TransformerTest extends TestStyle {
 
       val expectedValue = json \ mapping.path.asInstanceOf[SimpleJsonPathContext].path.head.id
 
-      transformer.getValueFromStraight(json, mapping) match {
+      transformer.getColumnStraight(json, mapping) match {
         case Column(colName, _, value) =>
           assert(colName == mapping.desiredColumnName, "Column names don't match.")
           value match {
@@ -178,6 +181,7 @@ class TransformerTest extends TestStyle {
             "identification" -> JObject("govId" -> v)
           case ("govIdType", v) =>
             "identification" -> JObject("govIdType" -> v)
+          case _ => throw new RuntimeException("should not get here")
         }
 
         val allDobs: List[JField] = ("dateOfBirth" -> insured) :: ownersDob
@@ -201,6 +205,7 @@ class TransformerTest extends TestStyle {
             })
 
             array
+          case _ => throw new RuntimeException("should not get here")
         }
       }
 
@@ -325,7 +330,7 @@ class TransformerTest extends TestStyle {
           |   eventBody.policy.status                                     =   status                VARCHAR       NOT NULL
           |   eventBody.policy.faceAmount                                 =   faceAmount            INT           NOT NULL
           |   addField()                                                  =   addedColumn           VARCHAR       NOT NULL
-          |   LIST parties FROM eventBody.owners (
+          |   LIST parties FROM appendToList(eventBody.owners, eventBody.insured) (
           |     dob                   = dateOfBirth  VARCHAR NOT NULL
           |     OBJECT identification FROM (govId, govIdType) (
           |       govId               = govId      VARCHAR NOT NULL
@@ -360,6 +365,13 @@ class TransformerTest extends TestStyle {
           |                    "dateOfBirth": "1986-03-21T00:00:00Z",
           |                    "identification": {
           |                        "govId": "125677689",
+          |                        "govIdType": "SSN"
+          |                    }
+          |                },
+          |                {
+          |                    "dateOfBirth": "2000-06-23T00:00:00Z",
+          |                    "identification": {
+          |                        "govId": "109984944",
           |                        "govIdType": "SSN"
           |                    }
           |                }
@@ -407,6 +419,7 @@ class TransformerTest extends TestStyle {
             "identification" -> JObject("govId" -> v)
           case ("govIdType", v) =>
             "identification" -> JObject("govIdType" -> v)
+          case _ => throw new RuntimeException("should not get here")
         }
 
         val allDobs: List[JField] = ("dateOfBirth" -> insured) :: ownersDob
@@ -430,6 +443,7 @@ class TransformerTest extends TestStyle {
             })
 
             array
+          case _ => throw new RuntimeException("should not get here")
         }
       }
 

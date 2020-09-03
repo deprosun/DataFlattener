@@ -141,8 +141,7 @@ object MappingContext {
     else
       getStraightMappingContext(context.straight_mapping())
   }
-
-
+  
 }
 
 trait MappingContext
