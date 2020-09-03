@@ -16,6 +16,42 @@ trait Transformer {
 
   val udfMap: Map[String, MapFunc]
 
+  private def appendToList(json: List[JValue]): JValue = {
+    json match {
+      case Nil => throw new RuntimeException("Please supply a valida JSON")
+      case JArray(_) :: Nil => throw new RuntimeException("Please also supply the element you want to add to the list")
+      case _ :: Nil => throw new RuntimeException("Please supply first argument as json of type list")
+      case JArray(arr) :: tail =>
+        JArray {
+          tail.foldLeft(arr) { (acc, x) =>
+            acc :+ x
+          }
+        }
+      case _ => throw new RuntimeException("should not get here")
+    }
+  }
+
+  private def prepenedToList(json: List[JValue]): JValue = {
+    json match {
+      case Nil => throw new RuntimeException("Please supply a valida JSON")
+      case JArray(_) :: Nil => throw new RuntimeException("Please also supply the element you want to add to the list")
+      case _ :: Nil => throw new RuntimeException("Please supply first argument as json of type list")
+      case JArray(arr) :: tail =>
+        JArray {
+          tail.foldLeft(arr) { (acc, x) =>
+            x +: acc
+          }
+        }
+      case _ => throw new RuntimeException("should not get here")
+    }
+  }
+
+  private val predefinedUdf: Map[String, MapFunc] = Map(
+    "appendToList" -> appendToList,
+    "prepenedToList" -> prepenedToList
+  )
+
+
   private def getStraightMappings(mappings: List[MappingContext]): List[MappingContext] =
     mappings filter (_.isInstanceOf[StraightMappingContext])
 
@@ -39,8 +75,10 @@ trait Transformer {
 
     def mapFunctionJsonPathContext(m: MapFunctionJsonPathContext): JValue = {
 
+      val allFunctions = udfMap ++ predefinedUdf
+
       //get the function
-      val mapFunc = udfMap.getOrElse(m.funcName,
+      val mapFunc = allFunctions.getOrElse(m.funcName,
         throw new RuntimeException(s"Unknown user defined function '${m.funcName}'"))
 
       //get the values
@@ -74,7 +112,7 @@ trait Transformer {
 
   }
 
-  def getValueFromStraight(json: JValue, mappingContext: StraightMappingContext): Column = {
+  def getColumnStraight(json: JValue, mappingContext: StraightMappingContext): Column = {
     val traversed: JValue = traversePath(json, mappingContext.path)
     Column(mappingContext.desiredColumnName, mappingContext, traversed)
   }
@@ -105,11 +143,11 @@ trait Transformer {
       val json = mergeFunc(j)
 
       val objectColumns: List[Column] = objectMappings map { i =>
-        getValueFromObject(json, i.asInstanceOf[ObjectMappingContext])
+        getColumnObject(json, i.asInstanceOf[ObjectMappingContext])
       }
 
       val listColumns: List[Column] = listMappings map { i =>
-        getValueFromList(json, i.asInstanceOf[ListMappingContext])
+        getColumnList(json, i.asInstanceOf[ListMappingContext])
       }
 
       val simpleColumns: List[Column] = getFlatColumns(json, straightMappings)
@@ -130,7 +168,7 @@ trait Transformer {
     }
   }
 
-  def getValueFromObject(json: JValue, context: ObjectMappingContext): Column = {
+  def getColumnObject(json: JValue, context: ObjectMappingContext): Column = {
 
     //first get the json we will be using to create our JSON struct/object
     val initial: JValue = JNothing
@@ -153,7 +191,7 @@ trait Transformer {
     Column(context.desiredColumnName, context, transformed)
   }
 
-  def getValueFromList(json: JValue, context: ListMappingContext): Column = {
+  def getColumnList(json: JValue, context: ListMappingContext): Column = {
 
     val traversed = traversePath(json, context.path)
 
@@ -197,7 +235,7 @@ trait Transformer {
   def getFlatColumns(json: JValue, mappings: List[MappingContext]): List[Column] = {
     //first get all the columns that are to be retrieved from this json
     getStraightMappings(mappings) map { case x: StraightMappingContext =>
-      getValueFromStraight(json, x)
+      getColumnStraight(json, x)
     }
   }
 
