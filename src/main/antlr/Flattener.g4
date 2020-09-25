@@ -4,11 +4,11 @@ mappers:
     mapper*;
 
 mapper
-    :'TABLE' table_name ('FROM' fromField)? ('FILTER' filter)? with? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    :'TOPIC' topic_name ('FROM' fromField)? ('FILTER' filter)? broadcast? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 child_mapper
-    :'TABLE' table_name 'FROM' fromField ('FILTER' filter)? with? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
+    :'TOPIC' topic_name 'FROM' fromField ('FILTER' filter)? broadcast? '(' 'MAPPING' '(' mapping+ ')' child_mapper* ')'
     ;
 
 mapping
@@ -61,7 +61,7 @@ attribute
     ;
 
 reference
-    : 'Reference' '(' table_name (',' id)? ')'
+    : 'Reference' '(' topic_name (',' id)? ')'
     ;
 
 copy
@@ -72,7 +72,7 @@ data_type
     : id
     ;
 
-table_name
+topic_name
     :(schema '.')? id
     ;
 

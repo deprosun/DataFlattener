@@ -1,4 +1,4 @@
-// Generated from /Users/mm10444/Projects/streaming-platform/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
+// Generated from /Users/kgupta/projects/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
 package com.github.deprosun.dataflattener.parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -232,13 +232,13 @@ public class FlattenerBaseListener implements FlattenerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTable_name(FlattenerParser.Table_nameContext ctx) { }
+	@Override public void enterTopic_name(FlattenerParser.Topic_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTable_name(FlattenerParser.Table_nameContext ctx) { }
+	@Override public void exitTopic_name(FlattenerParser.Topic_nameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

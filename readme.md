@@ -94,14 +94,14 @@ I'd like to create two tables - one table called `Donut` and a child table calle
 ```
 
 ```scala
-TABLE Donut (
+TOPIC Donut (
 
 	MAPPING (
 		donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
 		name               = donutName  VARCHAR    NOT NULL
 	)
 
-	TABLE Batter FROM batters.batter WITH (donutUniqueId = donutId) (
+	TOPIC Batter FROM batters.batter WITH (donutUniqueId = donutId) (
 		MAPPING (
 			id        = batterUID      	VARCHAR    NOT NULL  PK
 			donutId   = donutParentId  	VARCHAR    NOT NULL  FK
@@ -115,7 +115,7 @@ TABLE Donut (
 /* 
 --Parent/Child Table--
 
-you can create child tables simply by adding another TABLE inside the parent TABLE clause 
+you can create child tables simply by adding another TOPIC inside the parent TOPIC clause
 by telling which field you want to create rows FROM.  Sometimes we need to add extra 
 information (or rather need extra values) needed to generate child rows.  We depict such 
 language with `WITH (donutUniqueId = donutId)` where `donutUniqueId` is a field key that 
@@ -203,7 +203,7 @@ I'd like to create a Table `Topping` from the `topping` field.  Moreover, I'd li
 ```
 
 ```scala
-TABLE Topping (
+TOPIC Topping (
     MAPPING (
         type              = donutName           VARCHAR   NOT NULL
         EXPLODE topping (
@@ -288,14 +288,14 @@ val sourceJSON: String =
 ```scala
 val mapperConfig =
   """
-    TABLE Donut (
+    TOPIC Donut (
     
         MAPPING (
             donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
             name               = donutName  VARCHAR    NOT NULL
         )
     
-        TABLE Batter FROM batters.batter (
+        TOPIC Batter FROM batters.batter (
             MAPPING (
                 		id        = batterUID    VARCHAR    NOT NULL  PK
                         donutId   = donutId      VARCHAR    NOT NULL  FK
@@ -368,14 +368,14 @@ java.lang.IllegalArgumentException: Column donutId cannot be null.
 ```scala
 val mapperConfig =
   """
-    TABLE Donut (
+    TOPIC Donut (
 		
 		MAPPING (
 			donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
 			name               = donutName  VARCHAR    NOT NULL
 		)
 
-		TABLE Batter FROM batters.batter WITH (donutUniqueId = donutId) (
+		TOPIC Batter FROM batters.batter WITH (donutUniqueId = donutId) (
 			MAPPING (
 				id        = batterUID    	VARCHAR    NOT NULL  PK
 				donutId   = donutParentId  	VARCHAR    NOT NULL  FK

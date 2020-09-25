@@ -1,4 +1,4 @@
-// Generated from /Users/mm10444/Projects/streaming-platform/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
+// Generated from /Users/kgupta/projects/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
 package com.github.deprosun.dataflattener.parser;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -26,7 +26,7 @@ public class FlattenerParser extends Parser {
 		RULE_object_mapping = 4, RULE_list_mapping = 5, RULE_explode_mapping = 6, 
 		RULE_with = 7, RULE_from = 8, RULE_broadcast = 9, RULE_alias_json_path = 10, 
 		RULE_as = 11, RULE_straight_mapping = 12, RULE_precision = 13, RULE_attribute = 14, 
-		RULE_reference = 15, RULE_copy = 16, RULE_data_type = 17, RULE_table_name = 18, 
+		RULE_reference = 15, RULE_copy = 16, RULE_data_type = 17, RULE_topic_name = 18, 
 		RULE_schema = 19, RULE_fromField = 20, RULE_filter = 21, RULE_literal = 22, 
 		RULE_mappingAlias = 23, RULE_json_path = 24, RULE_map_func = 25, RULE_concat_func = 26, 
 		RULE_simple_json_path = 27, RULE_first_field_name = 28, RULE_column_name = 29, 
@@ -37,7 +37,7 @@ public class FlattenerParser extends Parser {
 			"mappers", "mapper", "child_mapper", "mapping", "object_mapping", "list_mapping", 
 			"explode_mapping", "with", "from", "broadcast", "alias_json_path", "as", 
 			"straight_mapping", "precision", "attribute", "reference", "copy", "data_type", 
-			"table_name", "schema", "fromField", "filter", "literal", "mappingAlias", 
+			"topic_name", "schema", "fromField", "filter", "literal", "mappingAlias", 
 			"json_path", "map_func", "concat_func", "simple_json_path", "first_field_name", 
 			"column_name", "middle_field_name", "pk_fk", "list_index", "null_notnull", 
 			"pk", "fk", "id"
@@ -47,7 +47,7 @@ public class FlattenerParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'TABLE'", "'FROM'", "'FILTER'", "'('", "'MAPPING'", "')'", "'OBJECT'", 
+			null, "'TOPIC'", "'FROM'", "'FILTER'", "'('", "'MAPPING'", "')'", "'OBJECT'", 
 			"'LIST'", "'EXPLODE'", "'WITH'", "','", "'BROADCAST'", "'AS'", "'Reference'", 
 			"'copy'", "'.'", "'='", "'literal('", "'lit('", "'CONCAT'", "'['", "']'", 
 			"'[ALL]'", "'NOT'", "'NULL'", "'PK'", "'FK'", "'_'"
@@ -168,8 +168,8 @@ public class FlattenerParser extends Parser {
 	}
 
 	public static class MapperContext extends ParserRuleContext {
-		public Table_nameContext table_name() {
-			return getRuleContext(Table_nameContext.class,0);
+		public Topic_nameContext topic_name() {
+			return getRuleContext(Topic_nameContext.class,0);
 		}
 		public FromFieldContext fromField() {
 			return getRuleContext(FromFieldContext.class,0);
@@ -177,8 +177,8 @@ public class FlattenerParser extends Parser {
 		public FilterContext filter() {
 			return getRuleContext(FilterContext.class,0);
 		}
-		public WithContext with() {
-			return getRuleContext(WithContext.class,0);
+		public BroadcastContext broadcast() {
+			return getRuleContext(BroadcastContext.class,0);
 		}
 		public List<MappingContext> mapping() {
 			return getRuleContexts(MappingContext.class);
@@ -216,7 +216,7 @@ public class FlattenerParser extends Parser {
 			setState(80);
 			match(T__0);
 			setState(81);
-			table_name();
+			topic_name();
 			setState(84);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
@@ -244,10 +244,10 @@ public class FlattenerParser extends Parser {
 			setState(91);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__9) {
+			if (_la==T__11) {
 				{
 				setState(90);
-				with();
+				broadcast();
 				}
 			}
 
@@ -303,8 +303,8 @@ public class FlattenerParser extends Parser {
 	}
 
 	public static class Child_mapperContext extends ParserRuleContext {
-		public Table_nameContext table_name() {
-			return getRuleContext(Table_nameContext.class,0);
+		public Topic_nameContext topic_name() {
+			return getRuleContext(Topic_nameContext.class,0);
 		}
 		public FromFieldContext fromField() {
 			return getRuleContext(FromFieldContext.class,0);
@@ -312,8 +312,8 @@ public class FlattenerParser extends Parser {
 		public FilterContext filter() {
 			return getRuleContext(FilterContext.class,0);
 		}
-		public WithContext with() {
-			return getRuleContext(WithContext.class,0);
+		public BroadcastContext broadcast() {
+			return getRuleContext(BroadcastContext.class,0);
 		}
 		public List<MappingContext> mapping() {
 			return getRuleContexts(MappingContext.class);
@@ -351,7 +351,7 @@ public class FlattenerParser extends Parser {
 			setState(110);
 			match(T__0);
 			setState(111);
-			table_name();
+			topic_name();
 			setState(112);
 			match(T__1);
 			setState(113);
@@ -371,10 +371,10 @@ public class FlattenerParser extends Parser {
 			setState(119);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__9) {
+			if (_la==T__11) {
 				{
 				setState(118);
-				with();
+				broadcast();
 				}
 			}
 
@@ -1245,8 +1245,8 @@ public class FlattenerParser extends Parser {
 	}
 
 	public static class ReferenceContext extends ParserRuleContext {
-		public Table_nameContext table_name() {
-			return getRuleContext(Table_nameContext.class,0);
+		public Topic_nameContext topic_name() {
+			return getRuleContext(Topic_nameContext.class,0);
 		}
 		public IdContext id() {
 			return getRuleContext(IdContext.class,0);
@@ -1277,7 +1277,7 @@ public class FlattenerParser extends Parser {
 			setState(256);
 			match(T__3);
 			setState(257);
-			table_name();
+			topic_name();
 			setState(260);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
@@ -1409,30 +1409,30 @@ public class FlattenerParser extends Parser {
 		return _localctx;
 	}
 
-	public static class Table_nameContext extends ParserRuleContext {
+	public static class Topic_nameContext extends ParserRuleContext {
 		public IdContext id() {
 			return getRuleContext(IdContext.class,0);
 		}
 		public SchemaContext schema() {
 			return getRuleContext(SchemaContext.class,0);
 		}
-		public Table_nameContext(ParserRuleContext parent, int invokingState) {
+		public Topic_nameContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_table_name; }
+		@Override public int getRuleIndex() { return RULE_topic_name; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FlattenerListener ) ((FlattenerListener)listener).enterTable_name(this);
+			if ( listener instanceof FlattenerListener ) ((FlattenerListener)listener).enterTopic_name(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FlattenerListener ) ((FlattenerListener)listener).exitTable_name(this);
+			if ( listener instanceof FlattenerListener ) ((FlattenerListener)listener).exitTopic_name(this);
 		}
 	}
 
-	public final Table_nameContext table_name() throws RecognitionException {
-		Table_nameContext _localctx = new Table_nameContext(_ctx, getState());
-		enterRule(_localctx, 36, RULE_table_name);
+	public final Topic_nameContext topic_name() throws RecognitionException {
+		Topic_nameContext _localctx = new Topic_nameContext(_ctx, getState());
+		enterRule(_localctx, 36, RULE_topic_name);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
@@ -2449,11 +2449,11 @@ public class FlattenerParser extends Parser {
 		"\u016f\3\2\2\2J\u0171\3\2\2\2LN\5\4\3\2ML\3\2\2\2NQ\3\2\2\2OM\3\2\2\2"+
 		"OP\3\2\2\2P\3\3\2\2\2QO\3\2\2\2RS\7\3\2\2SV\5&\24\2TU\7\4\2\2UW\5*\26"+
 		"\2VT\3\2\2\2VW\3\2\2\2WZ\3\2\2\2XY\7\5\2\2Y[\5,\27\2ZX\3\2\2\2Z[\3\2\2"+
-		"\2[]\3\2\2\2\\^\5\20\t\2]\\\3\2\2\2]^\3\2\2\2^_\3\2\2\2_`\7\6\2\2`a\7"+
+		"\2[]\3\2\2\2\\^\5\24\13\2]\\\3\2\2\2]^\3\2\2\2^_\3\2\2\2_`\7\6\2\2`a\7"+
 		"\7\2\2ac\7\6\2\2bd\5\b\5\2cb\3\2\2\2de\3\2\2\2ec\3\2\2\2ef\3\2\2\2fg\3"+
 		"\2\2\2gk\7\b\2\2hj\5\6\4\2ih\3\2\2\2jm\3\2\2\2ki\3\2\2\2kl\3\2\2\2ln\3"+
 		"\2\2\2mk\3\2\2\2no\7\b\2\2o\5\3\2\2\2pq\7\3\2\2qr\5&\24\2rs\7\4\2\2sv"+
-		"\5*\26\2tu\7\5\2\2uw\5,\27\2vt\3\2\2\2vw\3\2\2\2wy\3\2\2\2xz\5\20\t\2"+
+		"\5*\26\2tu\7\5\2\2uw\5,\27\2vt\3\2\2\2vw\3\2\2\2wy\3\2\2\2xz\5\24\13\2"+
 		"yx\3\2\2\2yz\3\2\2\2z{\3\2\2\2{|\7\6\2\2|}\7\7\2\2}\177\7\6\2\2~\u0080"+
 		"\5\b\5\2\177~\3\2\2\2\u0080\u0081\3\2\2\2\u0081\177\3\2\2\2\u0081\u0082"+
 		"\3\2\2\2\u0082\u0083\3\2\2\2\u0083\u0087\7\b\2\2\u0084\u0086\5\6\4\2\u0085"+
