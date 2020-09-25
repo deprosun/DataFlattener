@@ -172,7 +172,7 @@ trait Transformer {
 
     //first get the json we will be using to create our JSON struct/object
     val initial: JValue = JNothing
-    val traversed: JValue = context.collectedValues.foldLeft(initial) { case (acc, (key, path)) =>
+    val traversed: JValue = context.broadcast.collectedValues.foldLeft(initial) { case (acc, (key, path)) =>
       val j: JValue = key -> traversePath(json, path)
       acc merge j
     }
@@ -195,7 +195,7 @@ trait Transformer {
 
     val traversed = traversePath(json, context.path)
 
-    val neededValues: JValue = context.collectedValues map { case (key, valuePaths) =>
+    val neededValues: JValue = context.broadcast.collectedValues map { case (key, valuePaths) =>
       key -> traversePath(json, valuePaths)
     }
 
@@ -215,7 +215,7 @@ trait Transformer {
     //first get all the columns that are to be retrieved from this json
     getExplodeMappings(mappings) flatMap { case y: ExplodeMappingContext =>
 
-      val carryOvers = y.copiedKeys.toList map { case (k, v) =>
+      val carryOvers = y.broadcast.collectedValues.toList map { case (k, v) =>
         JObject(JField(k, traversePath(json, v)))
       }
 
@@ -312,7 +312,7 @@ trait Transformer {
 
         sourceData flatMap { sourceJson =>
           //get the additional values needed for all children rows
-          val additionalValues: List[JValue] = childMapper.copiedKeys.toList map { case (k, path) =>
+          val additionalValues: List[JValue] = childMapper.broadcast.collectedValues.toList map { case (k, path) =>
             JObject(JField(k, traversePath(sourceJson, path)))
           }
           transform(sourceJson, childMapper, additionalValues)
@@ -321,13 +321,13 @@ trait Transformer {
       }
 
       //table name
-      val tableName = mapperContext.tableName
+      val tableName = mapperContext.topicName
 
       //finally, return the whole list of tables
       Table(tableName, tableRows) :: children
     }
 
-    logger.info(s"Transforming ${mapperContext.tableName}")
+    logger.info(s"Transforming ${mapperContext.topicName}")
 
     mapperContext.filter match {
       case Some(Filter(path1, path2)) =>

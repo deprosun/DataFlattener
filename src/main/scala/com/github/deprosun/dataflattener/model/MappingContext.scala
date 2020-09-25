@@ -37,24 +37,7 @@ object MappingContext {
 
   def getObjectMappingContext(context: FlattenerParser.Object_mappingContext): ObjectMappingContext = {
 
-    val collectedValues: Map[String, JsonPathContext] = Option(context.from()) map { b =>
-
-      b.alias_json_path() map { c =>
-
-        val pathContext: JsonPathContext = getJsonPathContext(c.json_path())
-
-        Option(c.as()) map { as =>
-          as.id().getText -> pathContext
-        } getOrElse {
-
-          //assume that user inputed a column that is of format a.b.d
-          c.json_path().simple_json_path().getText -> pathContext
-        }
-      } toMap
-
-    } getOrElse {
-      Map()
-    }
+    val collectedValues = getBroadCast(context.from())
 
     val columnName = context.column_name().id().getText
 
@@ -63,26 +46,55 @@ object MappingContext {
     ObjectMappingContext(columnName, collectedValues, mappings)
   }
 
+  def getBroadCast(context: FlattenerParser.FromContext): BroadCast = {
+    BroadCast(
+      Option(context) map { b =>
+
+        b.alias_json_path() map { c =>
+
+          val pathContext: JsonPathContext = getJsonPathContext(c.json_path())
+
+          Option(c.as()) map { as =>
+            as.id().getText -> pathContext
+          } getOrElse {
+
+            //assume that user inputed a column that is of format a.b.d
+            c.json_path().simple_json_path().getText -> pathContext
+          }
+        } toMap
+
+      } getOrElse {
+        Map()
+      }
+    )
+  }
+
+  def getBroadCast(context: FlattenerParser.BroadcastContext): BroadCast = {
+    BroadCast(
+      Option(context) map { b =>
+
+        b.alias_json_path() map { c =>
+
+          val pathContext: JsonPathContext = getJsonPathContext(c.json_path())
+
+          Option(c.as()) map { as =>
+            as.id().getText -> pathContext
+          } getOrElse {
+
+            //assume that user inputed a column that is of format a.b.d
+            c.json_path().simple_json_path().getText -> pathContext
+          }
+        } toMap
+
+      } getOrElse {
+        Map()
+      }
+    )
+  }
+
   def getListMappingContext(context: FlattenerParser.List_mappingContext): ListMappingContext = {
 
-    val collectedValues: Map[String, JsonPathContext] = Option(context.broadcast()) map { b =>
-
-      b.alias_json_path() map { c =>
-
-        val pathContext: JsonPathContext = getJsonPathContext(c.json_path())
-
-        Option(c.as()) map { as =>
-          as.id().getText -> pathContext
-        } getOrElse {
-
-          //assume that user inputed a column that is of format a.b.d
-          c.json_path().simple_json_path().getText -> pathContext
-        }
-      } toMap
-
-    } getOrElse {
-      Map()
-    }
+    val collectedValues = getBroadCast(context.broadcast())
 
     val path = getJsonPathContext(context.json_path())
 
@@ -100,24 +112,7 @@ object MappingContext {
 
     val path = getJsonPathContext(context.json_path())
 
-    val collectedValues: Map[String, JsonPathContext] = Option(context.broadcast()) map { b =>
-
-      b.alias_json_path() map { c =>
-
-        val pathContext: JsonPathContext = getJsonPathContext(c.json_path())
-
-        Option(c.as()) map { as =>
-          as.id().getText -> pathContext
-        } getOrElse {
-
-          //assume that user inputed a column that is of format a.b.d
-          c.json_path().simple_json_path().getText -> pathContext
-        }
-      } toMap
-
-    } getOrElse {
-      Map()
-    }
+    val collectedValues = getBroadCast(context.broadcast())
 
     val mappings = context.mapping() map getMappingContext toList
 
@@ -141,7 +136,7 @@ object MappingContext {
     else
       getStraightMappingContext(context.straight_mapping())
   }
-  
+
 }
 
 trait MappingContext
@@ -159,21 +154,23 @@ case class StraightMappingContext(path: JsonPathContext,
                                   attributes: List[AttributeContext],
                                   mappings: List[MappingContext] = Nil) extends ColumnMappingContext
 
-case class ExplodeMappingContext(path: JsonPathContext, copiedKeys: Map[String, JsonPathContext],
+case class ExplodeMappingContext(path: JsonPathContext, broadcast: BroadCast,
                                  mappings: List[MappingContext]) extends MappingContext
 
 
 case class ObjectMappingContext(desiredColumnName: String,
-                                collectedValues: Map[String, JsonPathContext],
+                                broadcast: BroadCast,
                                 mappings: List[MappingContext]) extends ColumnMappingContext {
   val dataType = "JSON"
 }
 
 case class ListMappingContext(path: JsonPathContext,
                               desiredColumnName: String,
-                              collectedValues: Map[String, JsonPathContext],
+                              broadcast: BroadCast,
                               mappings: List[MappingContext]) extends ColumnMappingContext {
   val dataType = "JSON"
 }
 
 case class PathName(id: String, isNumber: Boolean = false)
+
+case class BroadCast(collectedValues: Map[String, JsonPathContext])

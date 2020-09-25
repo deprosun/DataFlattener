@@ -37,7 +37,7 @@ object MapperContext {
     * Function to convert FlattenerParser.Child_mapperContext to MapperContext case class
     */
   private def getChildMapperContext(context: FlattenerParser.Child_mapperContext): MapperContext = {
-    val tableName = context.table_name().getText
+    val tableName = context.topic_name().getText
 
     val fromField: Option[JsonPathContext] = Option(context.fromField()) map { x =>
       getSimpleJsonPathContext(x.simple_json_path())
@@ -49,12 +49,7 @@ object MapperContext {
       Filter(path1, path2)
     }
 
-    val copiedKeys = Option(context.`with`()) map { w =>
-      w.mappingAlias() map { x =>
-        val alias = x.column_name().id().getText
-        alias -> getJsonPathContext(x.json_path())
-      } toMap
-    } getOrElse Map()
+    val copiedKeys = getBroadCast(context.broadcast())
 
     val mappings = context.mapping() map getMappingContext toList
 
@@ -67,7 +62,7 @@ object MapperContext {
     * Function to convert FlattenerParser.MapperContext to MapperContext case class
     */
   private def getMapperContext(context: FlattenerParser.MapperContext): MapperContext = {
-    val tableName = context.table_name().getText
+    val tableName = context.topic_name().getText
 
     val fromField: Option[JsonPathContext] = Option(context.fromField()) map { x =>
       getSimpleJsonPathContext(x.simple_json_path())
@@ -79,13 +74,7 @@ object MapperContext {
       Filter(path1, path2)
     }
 
-    val copiedKeys = Option(context.`with`()) map { w =>
-      w.mappingAlias() map { x =>
-        val alias = x.column_name().id().getText
-
-        alias -> getJsonPathContext(x.json_path())
-      } toMap
-    } getOrElse Map()
+    val copiedKeys = getBroadCast(context.broadcast())
 
     val mappings = context.mapping() map getMappingContext toList
 
@@ -107,10 +96,10 @@ object MapperContext {
 
 }
 
-case class MapperContext(tableName: String,
+case class MapperContext(topicName: String,
                          fromField: Option[JsonPathContext],
                          filter: Option[Filter],
-                         copiedKeys: Map[String, JsonPathContext],
+                         broadcast: BroadCast,
                          mappings: List[MappingContext],
                          children: List[MapperContext])
 

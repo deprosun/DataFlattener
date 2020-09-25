@@ -1,4 +1,4 @@
-// Generated from /Users/mm10444/Projects/streaming-platform/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
+// Generated from /Users/kgupta/projects/DataFlattener/src/main/antlr/Flattener.g4 by ANTLR 4.7.2
 package com.github.deprosun.dataflattener.parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -42,7 +42,7 @@ public class FlattenerLexer extends Lexer {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'TABLE'", "'FROM'", "'FILTER'", "'('", "'MAPPING'", "')'", "'OBJECT'", 
+			null, "'TOPIC'", "'FROM'", "'FILTER'", "'('", "'MAPPING'", "')'", "'OBJECT'", 
 			"'LIST'", "'EXPLODE'", "'WITH'", "','", "'BROADCAST'", "'AS'", "'Reference'", 
 			"'copy'", "'.'", "'='", "'literal('", "'lit('", "'CONCAT'", "'['", "']'", 
 			"'[ALL]'", "'NOT'", "'NULL'", "'PK'", "'FK'", "'_'"
@@ -147,8 +147,8 @@ public class FlattenerLexer extends Lexer {
 		"\2#\u009c\3\2\2\2%\u009e\3\2\2\2\'\u00a7\3\2\2\2)\u00ac\3\2\2\2+\u00b3"+
 		"\3\2\2\2-\u00b5\3\2\2\2/\u00b7\3\2\2\2\61\u00bd\3\2\2\2\63\u00c1\3\2\2"+
 		"\2\65\u00c6\3\2\2\2\67\u00c9\3\2\2\29\u00cc\3\2\2\2;\u00cf\3\2\2\2=\u00d4"+
-		"\3\2\2\2?\u00da\3\2\2\2A\u00e8\3\2\2\2C\u00f4\3\2\2\2EF\7V\2\2FG\7C\2"+
-		"\2GH\7D\2\2HI\7N\2\2IJ\7G\2\2J\4\3\2\2\2KL\7H\2\2LM\7T\2\2MN\7Q\2\2NO"+
+		"\3\2\2\2?\u00da\3\2\2\2A\u00e8\3\2\2\2C\u00f4\3\2\2\2EF\7V\2\2FG\7Q\2"+
+		"\2GH\7R\2\2HI\7K\2\2IJ\7E\2\2J\4\3\2\2\2KL\7H\2\2LM\7T\2\2MN\7Q\2\2NO"+
 		"\7O\2\2O\6\3\2\2\2PQ\7H\2\2QR\7K\2\2RS\7N\2\2ST\7V\2\2TU\7G\2\2UV\7T\2"+
 		"\2V\b\3\2\2\2WX\7*\2\2X\n\3\2\2\2YZ\7O\2\2Z[\7C\2\2[\\\7R\2\2\\]\7R\2"+
 		"\2]^\7K\2\2^_\7P\2\2_`\7I\2\2`\f\3\2\2\2ab\7+\2\2b\16\3\2\2\2cd\7Q\2\2"+

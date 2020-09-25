@@ -7,7 +7,7 @@ object AttributeContext {
     * Convert FlattenerParser.ReferenceContext to ReferenceAttributeContext
     */
   def getReferenceAttributeContext(context: FlattenerParser.ReferenceContext): ReferenceAttributeContext = {
-    val tableName = context.table_name().getText
+    val tableName = context.topic_name().getText
 
     val columnName = Option(context.id()) map (_.getText)
 

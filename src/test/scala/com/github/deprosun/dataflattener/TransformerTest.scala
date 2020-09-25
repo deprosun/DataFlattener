@@ -322,7 +322,7 @@ class TransformerTest extends TestStyle {
 
       val mapper =
         """
-          |TABLE Donut (
+          |TOPIC Donut (
           |
           |	MAPPING (
           |		eventBody.policy.policyNumber                               =   policyNumber          VARCHAR       NOT NULL
@@ -552,7 +552,7 @@ class TransformerTest extends TestStyle {
 
       val mapper =
         """
-          |TABLE Donut (
+          |TOPIC Donut (
           |
           |	MAPPING (
           |		eventBody.policy.policyNumber                               =   policyNumber          VARCHAR       NOT NULL
@@ -628,20 +628,21 @@ class TransformerTest extends TestStyle {
 
       val mapperConfig =
         """
-          |TABLE Donut (
+          |TOPIC Donut (
           |
           |	MAPPING (
           |		donutUniqueId      = donutUID   VARCHAR    NOT NULL  PK
           |		name               = donutName  VARCHAR    NOT NULL
           |	)
           |
-          |	TABLE Batter FROM batters.batter WITH (donutUniqueId = donutId) (
+          |	TOPIC Batter FROM batters.batter BROADCAST (donutUniqueId AS donutId) (
           |		MAPPING (
           |					id        = batterUID    		    VARCHAR    NOT NULL  PK
           |					donutId   = donutParentId       VARCHAR    NOT NULL  FK
           |					type      = batterType   		    VARCHAR    NOT NULL
           |		)
           |	)
+          |
           |)
         """.stripMargin
 
@@ -650,7 +651,7 @@ class TransformerTest extends TestStyle {
 
       mappers foreach { x =>
 
-        val transformed = transformer.transform(json, x)
+        val transformed: List[Table] = transformer.transform(json, x)
 
         //lets print
         transformed foreach { y =>
@@ -812,7 +813,7 @@ class TransformerTest extends TestStyle {
 
       val mapperConfig =
         """
-          |TABLE Donut (
+          |TOPIC Donut (
           |
           |	MAPPING (
           |		donutUniqueId             = donutUID   VARCHAR    NOT NULL  PK

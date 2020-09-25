@@ -16,7 +16,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result (
+          |TOPIC dim_rules_result (
           |    MAPPING (
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
           |           suitabilityRuleId               = ruleId            VARCHAR (100)   NOT NULL
@@ -34,16 +34,18 @@ class MapperTest extends TestStyle {
         val actual = MapperContext.getMappers(config) head
 
         val expected = MapperContext(
-          tableName = "dim_rules_result",
+          topicName = "dim_rules_result",
           fromField = None,
           filter = None,
-          copiedKeys = Map(),
+          broadcast = BroadCast(Map()),
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = Map(
-                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              broadcast = BroadCast(
+                Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+              ),
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -82,7 +84,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult (
+          |TOPIC dim_rules_result FROM rulesResult (
           |  MAPPING (
           |      EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
           |         suitabilityRuleId           = ruleId                        VARCHAR (100)   NOT NULL
@@ -100,16 +102,18 @@ class MapperTest extends TestStyle {
         val actual = MapperContext.getMappers(config) head
 
         val expected = MapperContext(
-          tableName = "dim_rules_result",
+          topicName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
           filter = None,
-          copiedKeys = Map(),
+          broadcast = BroadCast(Map()),
           mappings = List(
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = Map(
-                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              broadcast = BroadCast(
+                Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+              ),
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -148,7 +152,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult FILTER query = obama (
+          |TOPIC dim_rules_result FROM rulesResult FILTER query = obama (
           |    MAPPING (
           |        suitabilityRuleId = ruleId                                VARCHAR (100)   NOT NULL
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
@@ -167,10 +171,10 @@ class MapperTest extends TestStyle {
         val actual = MapperContext.getMappers(config) head
 
         val expected = MapperContext(
-          tableName = "dim_rules_result",
+          topicName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
           filter = Some(Filter(SimpleJsonPathContext(List(PathName("query"))), SimpleJsonPathContext(List(PathName("obama"))))),
-          copiedKeys = Map(),
+          broadcast = BroadCast(Map()),
           mappings = List(
             StraightMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -179,9 +183,11 @@ class MapperTest extends TestStyle {
             ),
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = Map(
-                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              broadcast = BroadCast(
+                Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+              ),
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -219,7 +225,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult (
+          |TOPIC dim_rules_result FROM rulesResult (
           |    MAPPING (
           |        suitabilityRuleId  = ruleId                               VARCHAR (100)   NOT NULL
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
@@ -228,7 +234,7 @@ class MapperTest extends TestStyle {
           |           TO_UUID(gateResultValue) = gateResult             VARCHAR (105)   NOT NULL
           |        )
           |    )
-          |    TABLE childTable FROM someProperty (
+          |    TOPIC childTable FROM someProperty (
           |       MAPPING (
           |           suitabilityRuleId  = ruleId                               VARCHAR (100)   NOT NULL
           |           EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
@@ -248,10 +254,10 @@ class MapperTest extends TestStyle {
         val actual = MapperContext.getMappers(config) head
 
         val expected = MapperContext(
-          tableName = "dim_rules_result",
+          topicName = "dim_rules_result",
           fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
           filter = None,
-          copiedKeys = Map(),
+          broadcast = BroadCast(Map()),
           mappings = List(
             StraightMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -260,9 +266,11 @@ class MapperTest extends TestStyle {
             ),
             ExplodeMappingContext(
               path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-              copiedKeys = Map(
-                "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+              broadcast = BroadCast(
+                Map(
+                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+              ),
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -287,10 +295,10 @@ class MapperTest extends TestStyle {
           ),
           children = List(
             MapperContext(
-              tableName = "childTable",
+              topicName = "childTable",
               fromField = Some(SimpleJsonPathContext(List(PathName("someProperty")))),
               filter = None,
-              copiedKeys = Map(),
+              broadcast = BroadCast(Map()),
               mappings = List(
                 StraightMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -299,9 +307,11 @@ class MapperTest extends TestStyle {
                 ),
                 ExplodeMappingContext(
                   path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                  copiedKeys = Map(
-                    "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                    "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                  broadcast = BroadCast(
+                    Map(
+                      "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                      "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+                  ),
                   mappings = List(
                     StraightMappingContext(
                       path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -342,7 +352,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult (
+          |TOPIC dim_rules_result FROM rulesResult (
           |    MAPPING (
           |        (ruleId = suitabilityRuleId                                VARCHAR (100)   NOT NULL
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
@@ -351,7 +361,7 @@ class MapperTest extends TestStyle {
           |           (gateResult = TO_UUID(gateResultValue))             VARCHAR (105)   NOT NULL
           |        )
           |    )
-          |    TABLE childTable (
+          |    TOPIC childTable (
           |       MAPPING (
           |           (ruleId = suitabilityRuleId)                                VARCHAR (100)   NOT NULL
           |           EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
@@ -379,7 +389,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult (
+          |TOPIC dim_rules_result FROM rulesResult (
           |    MAPPING (
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
           |           suitabilityRuleId        = ruleId                VARCHAR (100)   NOT NULL
@@ -389,7 +399,7 @@ class MapperTest extends TestStyle {
           |    )
           |)
           |
-          |TABLE anotherTable FROM rulesResult (
+          |TOPIC anotherTable FROM rulesResult (
           |    MAPPING (
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
           |           suitabilityRuleId        = ruleId                VARCHAR (100)   NOT NULL
@@ -408,16 +418,18 @@ class MapperTest extends TestStyle {
 
         val expected = List(
           MapperContext(
-            tableName = "dim_rules_result",
+            topicName = "dim_rules_result",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
             filter = None,
-            copiedKeys = Map(),
+            broadcast = BroadCast(Map()),
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                copiedKeys = Map(
-                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                broadcast = BroadCast(
+                  Map(
+                    "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                    "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+                ),
                 mappings = List(
                   StraightMappingContext(
                     path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -443,16 +455,18 @@ class MapperTest extends TestStyle {
             children = Nil
           ),
           MapperContext(
-            tableName = "anotherTable",
+            topicName = "anotherTable",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
             filter = None,
-            copiedKeys = Map(),
+            broadcast = BroadCast(Map()),
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                copiedKeys = Map(
-                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                broadcast = BroadCast(
+                  Map(
+                    "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                    "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+                ),
                 mappings = List(
                   StraightMappingContext(
                     path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -490,7 +504,7 @@ class MapperTest extends TestStyle {
 
         """
           |
-          |TABLE dim_rules_result FROM rulesResult WITH (func(some) = someValue) (
+          |TOPIC dim_rules_result FROM rulesResult BROADCAST (func(some) AS someValue) (
           |    MAPPING (
           |        EXPLODE suitabilityRuleResults BROADCAST (gateResultValue AS gateResultValue, gateTypeDescription AS gateTypeDescription) (
           |           suitabilityRuleId        = ruleId                VARCHAR (100)   NOT NULL
@@ -507,19 +521,22 @@ class MapperTest extends TestStyle {
 
         val expected = List(
           MapperContext(
-            tableName = "dim_rules_result",
+            topicName = "dim_rules_result",
             fromField = Some(SimpleJsonPathContext(List(PathName("rulesResult")))),
             filter = None,
-            copiedKeys = Map("someValue" -> MapFunctionJsonPathContext(
-              funcName = "func",
-              functionParams = List(SimpleJsonPathContext(List(PathName("some"))))
-            )),
+            broadcast = BroadCast(
+              Map(
+                "someValue" -> MapFunctionJsonPathContext("func", List(SimpleJsonPathContext(List(PathName("some")))))
+              )
+            ),
             mappings = List(
               ExplodeMappingContext(
                 path = SimpleJsonPathContext(List(PathName("suitabilityRuleResults"))),
-                copiedKeys = Map(
-                  "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
-                  "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription")))),
+                broadcast = BroadCast(
+                  Map(
+                    "gateResultValue" -> SimpleJsonPathContext(List(PathName("gateResultValue"))),
+                    "gateTypeDescription" -> SimpleJsonPathContext(List(PathName("gateTypeDescription"))))
+                ),
                 mappings = List(
                   StraightMappingContext(
                     path = SimpleJsonPathContext(List(PathName("suitabilityRuleId"))),
@@ -556,7 +573,7 @@ class MapperTest extends TestStyle {
       val config =
 
         """
-          |TABLE Sample (
+          |TOPIC Sample (
           |    MAPPING (
           |        eventBody.policy.policyNumber                                =   policyNumber          VARCHAR   NOT NULL
           |        LIST advisors FROM eventBody.advisors BROADCAST (eventBody.policy.policyNumber AS pNumber) (
@@ -577,10 +594,10 @@ class MapperTest extends TestStyle {
         println(actual)
 
         val expected = MapperContext(
-          tableName = "Sample",
+          topicName = "Sample",
           fromField = None,
           filter = None,
-          copiedKeys = Map(),
+          broadcast = BroadCast(Map()),
           mappings = List(
             StraightMappingContext(
               SimpleJsonPathContext(
@@ -600,10 +617,10 @@ class MapperTest extends TestStyle {
                 )
               ),
               "advisors",
-              Map(
+              BroadCast(Map(
                 "pNumber" ->
                   SimpleJsonPathContext(List(PathName("eventBody"), PathName("policy"), PathName("policyNumber")))
-              ),
+              )),
               List(
                 StraightMappingContext(
                   SimpleJsonPathContext(
@@ -627,7 +644,7 @@ class MapperTest extends TestStyle {
                 ),
                 ObjectMappingContext(
                   "foo",
-                  Map("someAlias" -> SimpleJsonPathContext(List(PathName("number"),PathName("foo")))),
+                  BroadCast(Map("someAlias" -> SimpleJsonPathContext(List(PathName("number"), PathName("foo"))))),
                   List(
                     StraightMappingContext(
                       SimpleJsonPathContext(
