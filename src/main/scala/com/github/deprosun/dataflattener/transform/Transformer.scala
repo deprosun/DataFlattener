@@ -298,16 +298,29 @@ trait Transformer {
 
     def start: List[Table] = {
 
-      //get the source rows
+      //get the source rows.
+      //
+      //It is possible that this table is a child table.
+      //when the mapper context represents a child table, it looks at the source json and yield a set of rows.
+      //we look at each of these rows and generate 1 or more transformed rows. The transformed rows will exist only in
+      //child
+      //It looks at the `fromField` description of the mapper context. `fromField` points to a field in the source json
+      //which is of type List[JSON] - list of json objects (structs). This list is used for extracting ALL the rows that will exist in this
+      //child table.
+
+      //
+
       val sourceData: List[JValue] = getSourceRows(json, mapperContext, additionalValues)
 
       val no_op: JValue => JValue = (x: JValue) => x
 
       val no_op_row: List[Row] => List[Row] = (x: List[Row]) => x
 
+      //list of new rows transformed off of this source json record
       val tableRows: List[Row] = getRows(sourceData, mapperContext.mappings, no_op, no_op_row) flatten
 
-      //get the children recursively
+      //from this source json we might need to create additional tables that are
+      //represented as children.
       val children: List[Table] = mapperContext.children flatMap { childMapper =>
 
         sourceData flatMap { sourceJson =>
@@ -315,6 +328,7 @@ trait Transformer {
           val additionalValues: List[JValue] = childMapper.broadcast.collectedValues.toList map { case (k, path) =>
             JObject(JField(k, traversePath(sourceJson, path)))
           }
+
           transform(sourceJson, childMapper, additionalValues)
         }
 
